@@ -536,15 +536,17 @@ img {
     align-items: center;
     justify-content: center;
     padding: var(--spacing-md);
-    background: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 50%, #f0f9ff 100%);
+    background: #ffffff;
 }
 
 .auth-form {
     width: 100%;
-    max-width: 400px;
-    background: transparent;
+    max-width: 360px;
+    background: #ffffff;
     padding: var(--spacing-lg);
     border-radius: var(--radius-xl);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
     animation: fadeIn 0.5s ease;
 }
 
@@ -1306,6 +1308,7 @@ img {
     /* Auth Form - Tablet */
     .auth-form-container {
         padding: var(--spacing-xl);
+        background: var(--color-white);
     }
 
     .auth-logo-img {
@@ -1314,13 +1317,13 @@ img {
     }
 
     .auth-form {
-        max-width: 420px;
+        max-width: 380px;
         padding: var(--spacing-xl);
     }
 
     .auth-form h2 {
-        font-size: var(--font-size-2xl);
-        margin-bottom: var(--spacing-lg);
+        font-size: var(--font-size-xl);
+        margin-bottom: var(--spacing-md);
     }
 
     .auth-form .form-group {
@@ -1328,13 +1331,13 @@ img {
     }
 
     .auth-form .form-group input {
-        min-height: 52px;
+        min-height: 48px;
         font-size: var(--font-size-base);
     }
 
     .auth-form .btn-primary {
-        min-height: 52px;
-        font-size: var(--font-size-lg);
+        min-height: 48px;
+        font-size: var(--font-size-base);
     }
 
     .nav-logo-img {
@@ -1431,29 +1434,33 @@ img {
 @media (min-width: 1024px) {
 
     /* Auth Form - Desktop */
+    .auth-form-container {
+        background: var(--color-white);
+    }
+
     .auth-logo-img {
-        width: 90px;
-        height: 90px;
+        width: 80px;
+        height: 80px;
     }
 
     .auth-form {
-        max-width: 480px;
-        padding: var(--spacing-2xl);
+        max-width: 400px;
+        padding: var(--spacing-xl);
     }
 
     .auth-form h2 {
-        font-size: var(--font-size-2xl);
+        font-size: var(--font-size-xl);
     }
 
     .auth-form .form-group input {
-        min-height: 56px;
-        padding: var(--spacing-md);
+        min-height: 48px;
+        padding: var(--spacing-sm) var(--spacing-md);
     }
 
     .auth-form .btn-primary {
-        min-height: 56px;
-        padding: var(--spacing-md);
-        font-size: var(--font-size-lg);
+        min-height: 48px;
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: var(--font-size-base);
     }
 
     .nav-logo-img {
