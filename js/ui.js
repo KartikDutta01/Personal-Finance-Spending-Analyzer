@@ -57,8 +57,8 @@ function showView(viewId) {
         targetView.classList.add('active');
     }
 
-    // Update navigation active state
-    const navLinks = document.querySelectorAll('.nav-link');
+    // Update navigation active state (both desktop and mobile)
+    const navLinks = document.querySelectorAll('.nav-link, .mobile-nav-link');
     navLinks.forEach(link => {
         link.classList.remove('active');
         if (link.dataset.view === viewId) {
@@ -66,8 +66,33 @@ function showView(viewId) {
         }
     });
 
+    // Close mobile menu if open
+    closeMobileMenu();
+
     // Load view-specific data
     loadViewData(viewId);
+}
+
+/**
+ * Open mobile menu
+ */
+function openMobileMenu() {
+    const mobileMenu = document.getElementById('mobile-menu');
+    const overlay = document.getElementById('mobile-menu-overlay');
+    if (mobileMenu) mobileMenu.classList.add('active');
+    if (overlay) overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+/**
+ * Close mobile menu
+ */
+function closeMobileMenu() {
+    const mobileMenu = document.getElementById('mobile-menu');
+    const overlay = document.getElementById('mobile-menu-overlay');
+    if (mobileMenu) mobileMenu.classList.remove('active');
+    if (overlay) overlay.classList.remove('active');
+    document.body.style.overflow = '';
 }
 
 
@@ -614,7 +639,7 @@ function updateBudgetDisplay(income, savings) {
  * Requirements: 12.6
  */
 function initEventListeners() {
-    // Navigation links
+    // Desktop Navigation links
     document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
@@ -624,6 +649,52 @@ function initEventListeners() {
             }
         });
     });
+
+    // Mobile Navigation links
+    document.querySelectorAll('.mobile-nav-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const viewId = link.dataset.view;
+            if (viewId) {
+                showView(viewId);
+            }
+        });
+    });
+
+    // Mobile menu button
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', openMobileMenu);
+    }
+
+    // Mobile menu close button
+    const mobileMenuClose = document.getElementById('mobile-menu-close');
+    if (mobileMenuClose) {
+        mobileMenuClose.addEventListener('click', closeMobileMenu);
+    }
+
+    // Mobile menu overlay click to close
+    const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
+    if (mobileMenuOverlay) {
+        mobileMenuOverlay.addEventListener('click', closeMobileMenu);
+    }
+
+    // Mobile logout button
+    const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
+    if (mobileLogoutBtn) {
+        mobileLogoutBtn.addEventListener('click', async () => {
+            closeMobileMenu();
+            showLoading();
+            try {
+                await logout();
+                showSuccess('Logged out successfully');
+            } catch (err) {
+                showError('Failed to logout');
+            } finally {
+                hideLoading();
+            }
+        });
+    }
 
     // Logout button
     const logoutBtn = document.getElementById('logout-btn');
