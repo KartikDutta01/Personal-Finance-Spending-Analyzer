@@ -747,6 +747,15 @@ img {
     font-size: var(--font-size-sm);
 }
 
+/* Mobile: show mobile logout, hide desktop logout */
+.desktop-logout {
+    display: none;
+}
+
+.mobile-logout {
+    display: inline-flex;
+}
+
 /* ============================================
    Main App Container
    ============================================ */
@@ -1181,10 +1190,26 @@ img {
     /* Navigation - horizontal layout */
     .main-nav {
         display: flex;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         align-items: center;
+        justify-content: space-between;
         gap: var(--spacing-md);
         padding: var(--spacing-md) var(--spacing-xl);
+    }
+
+    .nav-header {
+        width: auto;
+        flex-shrink: 0;
+    }
+
+    /* Desktop: hide mobile logout, show desktop logout */
+    .mobile-logout {
+        display: none;
+    }
+
+    .desktop-logout {
+        display: inline-flex;
+        flex-shrink: 0;
     }
 
     .nav-links {

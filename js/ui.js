@@ -625,20 +625,27 @@ function initEventListeners() {
         });
     });
 
-    // Logout button
+    // Logout buttons (desktop and mobile)
+    const handleLogoutClick = async () => {
+        showLoading();
+        try {
+            await logout();
+            showSuccess('Logged out successfully');
+        } catch (err) {
+            showError('Failed to logout');
+        } finally {
+            hideLoading();
+        }
+    };
+
     const logoutBtn = document.getElementById('logout-btn');
+    const logoutBtnMobile = document.getElementById('logout-btn-mobile');
+
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', async () => {
-            showLoading();
-            try {
-                await logout();
-                showSuccess('Logged out successfully');
-            } catch (err) {
-                showError('Failed to logout');
-            } finally {
-                hideLoading();
-            }
-        });
+        logoutBtn.addEventListener('click', handleLogoutClick);
+    }
+    if (logoutBtnMobile) {
+        logoutBtnMobile.addEventListener('click', handleLogoutClick);
     }
 
     // Add expense button
