@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Personal Finance Spending Analyzer - Track expenses, manage budgets, and get AI-driven insights">
+    <title>Personal Finance Analyzer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- App Container -->
+    <div id="app" class="app-container">
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="loading-overlay hidden">
+            <div class="spinner"></div>
+        </div>
+
+        <!-- Toast Messages -->
+        <div id="toast-container" class="toast-container"></div>
+
+        <!-- Auth Views -->
+        <section id="auth-view" class="view">
+            <!-- Login Form -->
+            <div id="login-form-container" class="auth-form-container">
+                <form id="login-form" class="auth-form" novalidate>
+                    <div class="auth-logo-wrapper">
+                        <img src="assets/Finance-analyzer-logo.png" alt="Finance Analyzer Logo" class="auth-logo-img">
+                    </div>
+                    <h2>Login</h2>
+
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" name="email" required autocomplete="email">
+                        <span class="error-message" id="login-email-error"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" name="password" required
+                            autocomplete="current-password">
+                        <span class="error-message" id="login-password-error"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Login</button>
+
+                    <p class="auth-switch">
+                        Don't have an account? <a href="#" id="show-register">Register</a>
+                    </p>
+                </form>
+            </div>
+
+            <!-- Register Form -->
+            <div id="register-form-container" class="auth-form-container hidden">
+                <form id="register-form" class="auth-form" novalidate>
+                    <div class="auth-logo-wrapper">
+                        <img src="assets/Finance-analyzer-logo.png" alt="Finance Analyzer Logo" class="auth-logo-img">
+                    </div>
+                    <h2>Register</h2>
+
+                    <div class="form-group">
+                        <label for="register-name">Full Name</label>
+                        <input type="text" id="register-name" name="name" required autocomplete="name">
+                        <span class="error-message" id="register-name-error"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="register-email">Email</label>
+                        <input type="email" id="register-email" name="email" required autocomplete="email">
+                        <span class="error-message" id="register-email-error"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="register-password">Password</label>
+                        <input type="password" id="register-password" name="password" required
+                            autocomplete="new-password">
+                        <span class="error-message" id="register-password-error"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="register-phone">Phone Number</label>
+                        <input type="tel" id="register-phone" name="phone" autocomplete="tel">
+                        <span class="error-message" id="register-phone-error"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Register</button>
+
+                    <p class="auth-switch">
+                        Already have an account? <a href="#" id="show-login">Login</a>
+                    </p>
+                </form>
+            </div>
+        </section>
+
+        <!-- Main App Views (shown after authentication) -->
+        <main id="main-app" class="main-app hidden">
+            <!-- Navigation -->
+            <nav id="main-nav" class="main-nav">
+                <div class="nav-header">
+                    <div class="nav-brand">
+                        <img src="assets/Finance-analyzer-logo.png" alt="Logo" class="nav-logo-img">
+                        <span class="nav-brand-text">Finance Analyzer</span>
+                    </div>
+                    <button id="logout-btn" class="btn btn-secondary">Logout</button>
+                </div>
+                <ul class="nav-links">
+                    <li><a href="#" data-view="dashboard" class="nav-link active">Dashboard</a></li>
+                    <li><a href="#" data-view="expenses" class="nav-link">Expenses</a></li>
+                    <li><a href="#" data-view="budget" class="nav-link">Budget</a></li>
+                    <li><a href="#" data-view="ai-suggestions" class="nav-link">AI Insights</a></li>
+                </ul>
+            </nav>
+
+            <!-- Dashboard View -->
+            <section id="dashboard-view" class="view active">
+                <header class="view-header">
+                    <h2>Dashboard</h2>
+                </header>
+
+                <div class="dashboard-grid">
+                    <!-- Summary Cards -->
+                    <article class="card summary-card">
+                        <h3>Current Month Spending</h3>
+                        <p class="amount" id="current-month-total">₹0.00</p>
+                    </article>
+
+                    <article class="card summary-card">
+                        <h3>Available Budget</h3>
+                        <p class="amount" id="available-budget">₹0.00</p>
+                    </article>
+
+                    <article class="card summary-card">
+                        <h3>Month-over-Month</h3>
+                        <p class="amount" id="mom-change">0%</p>
+                    </article>
+
+                    <!-- Overspending Alert -->
+                    <div id="overspending-alert" class="alert alert-warning hidden">
+                        <strong>Warning:</strong> You are overspending this month!
+                    </div>
+
+                    <!-- Category Breakdown Chart -->
+                    <article class="card chart-card">
+                        <h3>Spending by Category</h3>
+                        <canvas id="category-pie-chart"></canvas>
+                        <div id="pie-chart-legend" class="chart-legend"></div>
+                    </article>
+
+                    <!-- Monthly Trends Chart -->
+                    <article class="card chart-card">
+                        <h3>Monthly Spending Trends</h3>
+                        <canvas id="trends-line-chart"></canvas>
+                    </article>
+
+                    <!-- Forecast Chart -->
+                    <article class="card chart-card">
+                        <h3>Spending Forecast</h3>
+                        <canvas id="forecast-chart"></canvas>
+                        <p id="forecast-info" class="chart-info"></p>
+                    </article>
+
+                    <!-- Top Categories -->
+                    <article class="card">
+                        <h3>Top Spending Categories</h3>
+                        <ul id="top-categories-list" class="category-list"></ul>
+                    </article>
+                </div>
+            </section>
+
+            <!-- Expenses View -->
+            <section id="expenses-view" class="view hidden">
+                <header class="view-header">
+                    <h2>Expenses</h2>
+                    <button id="add-expense-btn" class="btn btn-primary">Add Expense</button>
+                </header>
+
+                <!-- Add/Edit Expense Form -->
+                <div id="expense-form-container" class="form-container hidden">
+                    <form id="expense-form" class="expense-form" novalidate>
+                        <h3 id="expense-form-title">Add Expense</h3>
+                        <input type="hidden" id="expense-id">
+
+                        <div class="form-group">
+                            <label for="expense-name">Expense Name</label>
+                            <input type="text" id="expense-name" name="expense_name" required>
+                            <span class="error-message" id="expense-name-error"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="expense-category">Category</label>
+                            <select id="expense-category" name="category" required>
+                                <option value="">Select a category</option>
+                                <option value="Food & Dining">Food & Dining</option>
+                                <option value="Transportation">Transportation</option>
+                                <option value="Housing">Housing</option>
+                                <option value="Utilities">Utilities</option>
+                                <option value="Healthcare">Healthcare</option>
+                                <option value="Entertainment">Entertainment</option>
+                                <option value="Shopping">Shopping</option>
+                                <option value="Education">Education</option>
+                                <option value="Personal Care">Personal Care</option>
+                                <option value="Travel">Travel</option>
+                                <option value="Subscriptions">Subscriptions</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <span class="error-message" id="expense-category-error"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="expense-amount">Amount (₹)</label>
+                            <input type="number" id="expense-amount" name="amount" step="0.01" min="0.01" required>
+                            <span class="error-message" id="expense-amount-error"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="expense-date">Date</label>
+                            <input type="date" id="expense-date" name="date" required>
+                            <span class="error-message" id="expense-date-error"></span>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Save</button>
+                            <button type="button" id="cancel-expense-btn" class="btn btn-secondary">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Expense List -->
+                <div class="expense-list-container">
+                    <ul id="expense-list" class="expense-list"></ul>
+                    <p id="no-expenses-message" class="empty-state hidden">No expenses recorded yet. Add your first
+                        expense!</p>
+                </div>
+            </section>
+
+            <!-- Budget View -->
+            <section id="budget-view" class="view hidden">
+                <header class="view-header">
+                    <h2>Budget Settings</h2>
+                </header>
+
+                <form id="budget-form" class="budget-form" novalidate>
+                    <div class="form-group">
+                        <label for="monthly-income">Monthly Income (₹)</label>
+                        <input type="number" id="monthly-income" name="monthly_income" step="0.01" min="0" required>
+                        <span class="error-message" id="monthly-income-error"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="savings-goal">Savings Goal (₹) <span
+                                class="optional-label">(Optional)</span></label>
+                        <input type="number" id="savings-goal" name="savings_goal" step="0.01" min="0"
+                            placeholder="Leave empty if no goal">
+                        <span class="error-message" id="savings-goal-error"></span>
+                    </div>
+
+                    <div id="savings-warning" class="alert alert-warning hidden">
+                        Warning: Your savings goal exceeds your monthly income.
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Save Budget</button>
+                </form>
+
+                <article class="card budget-summary">
+                    <h3>Budget Summary</h3>
+                    <dl class="budget-details">
+                        <dt>Monthly Income:</dt>
+                        <dd id="budget-income-display">₹0.00</dd>
+                        <dt>Savings Goal:</dt>
+                        <dd id="budget-savings-display">₹0.00</dd>
+                        <dt>Available for Spending:</dt>
+                        <dd id="budget-available-display">₹0.00</dd>
+                    </dl>
+                </article>
+            </section>
+
+            <!-- AI Suggestions View -->
+            <section id="ai-suggestions-view" class="view hidden">
+                <header class="view-header">
+                    <h2>AI Budget Insights</h2>
+                </header>
+
+                <div class="ai-intro">
+                    <p>Get personalized budget recommendations based on your spending patterns.</p>
+                    <button id="get-ai-plan-btn" class="btn btn-primary">Get AI Budget Plan</button>
+                </div>
+
+                <div id="ai-suggestions-container" class="ai-suggestions hidden">
+                    <!-- AI Summary -->
+                    <article class="card ai-summary">
+                        <h3>Summary</h3>
+                        <p id="ai-summary-text"></p>
+                    </article>
+
+                    <!-- Ideal Savings -->
+                    <article class="card">
+                        <h3>Recommended Savings</h3>
+                        <p class="highlight" id="ai-savings-percentage"></p>
+                    </article>
+
+                    <!-- Category Limits -->
+                    <article class="card">
+                        <h3>Recommended Category Limits</h3>
+                        <ul id="ai-category-limits" class="ai-list"></ul>
+                    </article>
+
+                    <!-- Tips -->
+                    <article class="card">
+                        <h3>Money-Saving Tips</h3>
+                        <ul id="ai-tips" class="ai-list"></ul>
+                    </article>
+
+                    <!-- Saving Plans -->
+                    <article class="card">
+                        <h3>Saving Plans</h3>
+                        <div id="ai-saving-plans" class="saving-plans"></div>
+                    </article>
+                </div>
+
+                <div id="ai-insufficient-data" class="alert alert-info hidden">
+                    We need more expense history to generate personalized recommendations. Keep tracking your expenses!
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- JavaScript Modules -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module" src="js/app.js"></script>
+</body>
+
+</html>

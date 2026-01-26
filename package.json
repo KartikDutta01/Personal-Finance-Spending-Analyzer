@@ -1,0 +1,16 @@
+{
+    "name": "personal-finance-analyzer",
+    "version": "1.0.0",
+    "description": "Personal Finance Spending Analyzer Web Application",
+    "type": "module",
+    "scripts": {
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "test:property": "vitest run --testNamePattern='Property'"
+    },
+    "devDependencies": {
+        "vitest": "^1.6.0",
+        "fast-check": "^3.15.0",
+        "jsdom": "^24.0.0"
+    }
+}
