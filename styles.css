@@ -665,8 +665,11 @@ img {
    Main Navigation
    ============================================ */
 .main-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     background: var(--color-white);
-    padding: var(--spacing-sm) var(--spacing-md);
+    padding: var(--spacing-md) var(--spacing-lg);
     box-shadow: var(--shadow-md);
     position: sticky;
     top: 0;
@@ -679,6 +682,7 @@ img {
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
+    flex-shrink: 0;
 }
 
 .nav-logo-icon {
@@ -696,15 +700,16 @@ img {
     width: auto;
 }
 
-/* Mobile Navigation - Stack vertically */
+/* Navigation links */
 .nav-links {
     display: flex;
-    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
     gap: var(--spacing-xs);
-    width: 100%;
-    margin-top: var(--spacing-sm);
-    padding-top: var(--spacing-sm);
-    border-top: 1px solid var(--color-gray-200);
+    flex: 1;
+    margin: 0;
+    padding: 0;
+    list-style: none;
 }
 
 .nav-link {
@@ -712,15 +717,14 @@ img {
     align-items: center;
     justify-content: center;
     min-height: var(--touch-target-min);
-    min-width: var(--touch-target-min);
     padding: var(--spacing-sm) var(--spacing-md);
     color: var(--color-gray-600);
     border-radius: var(--radius-md);
     font-size: var(--font-size-sm);
     font-weight: var(--font-weight-medium);
     transition: background-color var(--transition-fast), color var(--transition-fast);
-    flex: 1;
     text-align: center;
+    white-space: nowrap;
 }
 
 .nav-link:hover {
@@ -734,26 +738,10 @@ img {
     box-shadow: 0 2px 8px rgba(8, 145, 178, 0.3);
 }
 
-/* Mobile nav header row */
-.nav-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-}
-
 #logout-btn {
     min-height: var(--touch-target-min);
     font-size: var(--font-size-sm);
-}
-
-/* Mobile: show mobile logout, hide desktop logout */
-.desktop-logout {
-    display: none;
-}
-
-.mobile-logout {
-    display: inline-flex;
+    flex-shrink: 0;
 }
 
 /* ============================================
@@ -1187,42 +1175,12 @@ img {
         height: 36px;
     }
 
-    /* Navigation - horizontal layout */
+    /* Navigation - larger padding on desktop */
     .main-nav {
-        display: flex;
-        flex-wrap: nowrap;
-        align-items: center;
-        justify-content: space-between;
-        gap: var(--spacing-md);
         padding: var(--spacing-md) var(--spacing-xl);
     }
 
-    .nav-header {
-        width: auto;
-        flex-shrink: 0;
-    }
-
-    /* Desktop: hide mobile logout, show desktop logout */
-    .mobile-logout {
-        display: none;
-    }
-
-    .desktop-logout {
-        display: inline-flex;
-        flex-shrink: 0;
-    }
-
-    .nav-links {
-        flex: 1;
-        width: auto;
-        margin-top: 0;
-        padding-top: 0;
-        border-top: none;
-        justify-content: center;
-    }
-
     .nav-link {
-        flex: 0 0 auto;
         font-size: var(--font-size-base);
     }
 

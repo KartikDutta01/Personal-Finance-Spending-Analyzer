@@ -625,27 +625,20 @@ function initEventListeners() {
         });
     });
 
-    // Logout buttons (desktop and mobile)
-    const handleLogoutClick = async () => {
-        showLoading();
-        try {
-            await logout();
-            showSuccess('Logged out successfully');
-        } catch (err) {
-            showError('Failed to logout');
-        } finally {
-            hideLoading();
-        }
-    };
-
+    // Logout button
     const logoutBtn = document.getElementById('logout-btn');
-    const logoutBtnMobile = document.getElementById('logout-btn-mobile');
-
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', handleLogoutClick);
-    }
-    if (logoutBtnMobile) {
-        logoutBtnMobile.addEventListener('click', handleLogoutClick);
+        logoutBtn.addEventListener('click', async () => {
+            showLoading();
+            try {
+                await logout();
+                showSuccess('Logged out successfully');
+            } catch (err) {
+                showError('Failed to logout');
+            } finally {
+                hideLoading();
+            }
+        });
     }
 
     // Add expense button

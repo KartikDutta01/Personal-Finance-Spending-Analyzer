@@ -269,17 +269,14 @@ function setupAuthForms() {
         }
     });
 
-    // Logout buttons (desktop and mobile)
-    const handleLogout = async () => {
+    // Logout button
+    document.getElementById('logout-btn')?.addEventListener('click', async () => {
         showLoading();
         await logout();
         hideLoading();
         showSuccess('Logged out successfully');
         console.log('Logged out');
-    };
-
-    document.getElementById('logout-btn')?.addEventListener('click', handleLogout);
-    document.getElementById('logout-btn-mobile')?.addEventListener('click', handleLogout);
+    });
 }
 
 // Initialize app when DOM is ready
