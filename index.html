@@ -97,17 +97,32 @@
 
         <!-- Main App Views (shown after authentication) -->
         <main id="main-app" class="main-app hidden">
-            <!-- Mobile Navigation -->
-            <header class="mobile-header">
-                <div class="nav-brand">
-                    <img src="assets/Finance-analyzer-logo.png" alt="Logo" class="nav-logo-img">
-                    <span class="nav-brand-text">Finance Analyzer</span>
+            <!-- Header Navigation -->
+            <header class="site-header">
+                <div class="header-container">
+                    <div class="nav-brand">
+                        <img src="assets/Finance-analyzer-logo.png" alt="Logo" class="nav-logo-img">
+                        <span class="nav-brand-text">Finance Analyzer</span>
+                    </div>
+
+                    <!-- Desktop Navigation -->
+                    <nav class="desktop-nav">
+                        <ul class="nav-links">
+                            <li><a href="#" data-view="dashboard" class="nav-link active">Dashboard</a></li>
+                            <li><a href="#" data-view="expenses" class="nav-link">Expenses</a></li>
+                            <li><a href="#" data-view="budget" class="nav-link">Budget</a></li>
+                            <li><a href="#" data-view="ai-suggestions" class="nav-link">AI Insights</a></li>
+                        </ul>
+                        <button id="logout-btn" class="btn btn-logout">Logout</button>
+                    </nav>
+
+                    <!-- Mobile Menu Button -->
+                    <button id="mobile-menu-btn" class="hamburger-btn" aria-label="Open menu">
+                        <span class="hamburger-line"></span>
+                        <span class="hamburger-line"></span>
+                        <span class="hamburger-line"></span>
+                    </button>
                 </div>
-                <button id="mobile-menu-btn" class="hamburger-btn" aria-label="Open menu">
-                    <span class="hamburger-line"></span>
-                    <span class="hamburger-line"></span>
-                    <span class="hamburger-line"></span>
-                </button>
             </header>
 
             <!-- Mobile Slide Menu -->
@@ -118,31 +133,26 @@
                         <img src="assets/Finance-analyzer-logo.png" alt="Logo" class="nav-logo-img">
                         <span class="nav-brand-text">Finance Analyzer</span>
                     </div>
-                    <button id="mobile-menu-close" class="close-btn" aria-label="Close menu">&times;</button>
+                    <button id="mobile-menu-close" class="close-btn" aria-label="Close menu">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
                 </div>
-                <ul class="mobile-nav-links">
-                    <li><a href="#" data-view="dashboard" class="mobile-nav-link active">Dashboard</a></li>
-                    <li><a href="#" data-view="expenses" class="mobile-nav-link">Expenses</a></li>
-                    <li><a href="#" data-view="budget" class="mobile-nav-link">Budget</a></li>
-                    <li><a href="#" data-view="ai-suggestions" class="mobile-nav-link">AI Insights</a></li>
-                </ul>
-                <button id="mobile-logout-btn" class="btn btn-secondary mobile-logout-btn">Logout</button>
+                <nav class="mobile-nav">
+                    <ul class="mobile-nav-links">
+                        <li><a href="#" data-view="dashboard" class="mobile-nav-link active">Dashboard</a></li>
+                        <li><a href="#" data-view="expenses" class="mobile-nav-link">Expenses</a></li>
+                        <li><a href="#" data-view="budget" class="mobile-nav-link">Budget</a></li>
+                        <li><a href="#" data-view="ai-suggestions" class="mobile-nav-link">AI Insights</a></li>
+                    </ul>
+                </nav>
+                <div class="mobile-menu-footer">
+                    <button id="mobile-logout-btn" class="btn btn-logout-mobile">Logout</button>
+                </div>
             </aside>
-
-            <!-- Desktop Navigation -->
-            <nav id="main-nav" class="main-nav desktop-nav">
-                <div class="nav-brand">
-                    <img src="assets/Finance-analyzer-logo.png" alt="Logo" class="nav-logo-img">
-                    <span class="nav-brand-text">Finance Analyzer</span>
-                </div>
-                <ul class="nav-links">
-                    <li><a href="#" data-view="dashboard" class="nav-link active">Dashboard</a></li>
-                    <li><a href="#" data-view="expenses" class="nav-link">Expenses</a></li>
-                    <li><a href="#" data-view="budget" class="nav-link">Budget</a></li>
-                    <li><a href="#" data-view="ai-suggestions" class="nav-link">AI Insights</a></li>
-                </ul>
-                <button id="logout-btn" class="btn btn-secondary">Logout</button>
-            </nav>
 
             <!-- Dashboard View -->
             <section id="dashboard-view" class="view active">
