@@ -33,6 +33,17 @@ const TOAST_DURATION = 4000;
 const cleanupFunctions = [];
 
 /**
+ * Calendar state
+ */
+let calendarState = {
+    currentMonth: new Date().getMonth(),
+    currentYear: new Date().getFullYear(),
+    selectedDate: null,
+    startTime: '10:30',
+    endTime: '12:30'
+};
+
+/**
  * Show a specific view and hide others
  * Updates navigation active state
  * 
@@ -93,6 +104,217 @@ function closeMobileMenu() {
     if (mobileMenu) mobileMenu.classList.remove('active');
     if (overlay) overlay.classList.remove('active');
     document.body.style.overflow = '';
+}
+
+/**
+ * Calendar Functions
+ */
+function openCalendarPopup() {
+    const popup = document.getElementById('calendar-popup');
+    if (popup) {
+        popup.classList.remove('hidden');
+        renderCalendar();
+    }
+}
+
+function closeCalendarPopup() {
+    const popup = document.getElementById('calendar-popup');
+    if (popup) {
+        popup.classList.add('hidden');
+    }
+}
+
+function renderCalendar() {
+    const daysContainer = document.getElementById('calendar-days');
+    const monthYearLabel = document.getElementById('calendar-month-year');
+
+    if (!daysContainer || !monthYearLabel) return;
+
+    const { currentMonth, currentYear, selectedDate } = calendarState;
+    const today = new Date();
+
+    // Update month/year label
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'];
+    monthYearLabel.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+
+    // Get first day of month and total days
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const daysInPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
+
+    // Clear container
+    daysContainer.innerHTML = '';
+
+    // Previous month days
+    for (let i = firstDay - 1; i >= 0; i--) {
+        const day = daysInPrevMonth - i;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'calendar-day other-month';
+        btn.textContent = day;
+        btn.addEventListener('click', () => {
+            calendarState.currentMonth--;
+            if (calendarState.currentMonth < 0) {
+                calendarState.currentMonth = 11;
+                calendarState.currentYear--;
+            }
+            calendarState.selectedDate = new Date(calendarState.currentYear, calendarState.currentMonth, day);
+            renderCalendar();
+        });
+        daysContainer.appendChild(btn);
+    }
+
+    // Current month days
+    for (let day = 1; day <= daysInMonth; day++) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'calendar-day';
+        btn.textContent = day;
+
+        const dateToCheck = new Date(currentYear, currentMonth, day);
+
+        // Check if today
+        if (today.getDate() === day &&
+            today.getMonth() === currentMonth &&
+            today.getFullYear() === currentYear) {
+            btn.classList.add('today');
+        }
+
+        // Check if selected
+        if (selectedDate &&
+            selectedDate.getDate() === day &&
+            selectedDate.getMonth() === currentMonth &&
+            selectedDate.getFullYear() === currentYear) {
+            btn.classList.add('selected');
+        }
+
+        btn.addEventListener('click', () => {
+            calendarState.selectedDate = new Date(currentYear, currentMonth, day);
+            updateDateTimeDisplay();
+            closeCalendarPopup();
+        });
+
+        daysContainer.appendChild(btn);
+    }
+
+    // Next month days to fill grid
+    const totalCells = daysContainer.children.length;
+    const remainingCells = 42 - totalCells; // 6 rows * 7 days
+    for (let day = 1; day <= remainingCells; day++) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'calendar-day other-month';
+        btn.textContent = day;
+        btn.addEventListener('click', () => {
+            calendarState.currentMonth++;
+            if (calendarState.currentMonth > 11) {
+                calendarState.currentMonth = 0;
+                calendarState.currentYear++;
+            }
+            calendarState.selectedDate = new Date(calendarState.currentYear, calendarState.currentMonth, day);
+            renderCalendar();
+        });
+        daysContainer.appendChild(btn);
+    }
+}
+
+function updateDateTimeDisplay() {
+    const display = document.getElementById('expense-date-display');
+    const dateInput = document.getElementById('expense-date');
+
+    if (!display || !calendarState.selectedDate) return;
+
+    const date = calendarState.selectedDate;
+
+    // Format date
+    const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+    const dateStr = date.toLocaleDateString('en-US', options);
+
+    // Update display
+    display.value = dateStr;
+
+    // Update hidden input
+    if (dateInput) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        dateInput.value = `${year}-${month}-${day}`;
+    }
+}
+
+function initCalendarListeners() {
+    // Toggle button
+    const toggleBtn = document.getElementById('calendar-toggle-btn');
+    const displayInput = document.getElementById('expense-date-display');
+
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            openCalendarPopup();
+        });
+    }
+
+    if (displayInput) {
+        displayInput.addEventListener('click', (e) => {
+            e.preventDefault();
+            openCalendarPopup();
+        });
+    }
+
+    // Navigation buttons
+    const prevBtn = document.getElementById('prev-month-btn');
+    const nextBtn = document.getElementById('next-month-btn');
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            calendarState.currentMonth--;
+            if (calendarState.currentMonth < 0) {
+                calendarState.currentMonth = 11;
+                calendarState.currentYear--;
+            }
+            renderCalendar();
+        });
+    }
+
+    if (nextBtn) {
+        nextBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            calendarState.currentMonth++;
+            if (calendarState.currentMonth > 11) {
+                calendarState.currentMonth = 0;
+                calendarState.currentYear++;
+            }
+            renderCalendar();
+        });
+    }
+
+    // Done button
+    const doneBtn = document.getElementById('calendar-done-btn');
+    if (doneBtn) {
+        doneBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            updateDateTimeDisplay();
+            closeCalendarPopup();
+        });
+    }
+
+    // Close on outside click
+    document.addEventListener('click', (e) => {
+        const popup = document.getElementById('calendar-popup');
+        const wrapper = document.querySelector('.datetime-picker-wrapper');
+        if (popup && !popup.classList.contains('hidden') &&
+            wrapper && !wrapper.contains(e.target)) {
+            closeCalendarPopup();
+        }
+    });
+
+    // Set default date to today
+    calendarState.selectedDate = new Date();
+    calendarState.currentMonth = calendarState.selectedDate.getMonth();
+    calendarState.currentYear = calendarState.selectedDate.getFullYear();
 }
 
 
@@ -639,6 +861,9 @@ function updateBudgetDisplay(income, savings) {
  * Requirements: 12.6
  */
 function initEventListeners() {
+    // Initialize calendar
+    initCalendarListeners();
+
     // Desktop Navigation links
     document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
@@ -783,12 +1008,19 @@ function showExpenseForm(expense = null) {
     const formTitle = document.getElementById('expense-form-title');
     const form = document.getElementById('expense-form');
     const expenseIdInput = document.getElementById('expense-id');
+    const dateDisplay = document.getElementById('expense-date-display');
 
     if (!formContainer || !form) return;
 
     // Reset form
     form.reset();
     clearFormErrors(form);
+
+    // Reset calendar state
+    const today = new Date();
+    calendarState.currentMonth = today.getMonth();
+    calendarState.currentYear = today.getFullYear();
+    calendarState.selectedDate = today;
 
     // Set form title and populate fields if editing
     if (expense) {
@@ -799,14 +1031,25 @@ function showExpenseForm(expense = null) {
         document.getElementById('expense-category').value = expense.category || '';
         document.getElementById('expense-amount').value = expense.amount || '';
         document.getElementById('expense-date').value = expense.date || '';
+
+        // Update calendar with existing date
+        if (expense.date) {
+            const expenseDate = new Date(expense.date);
+            calendarState.selectedDate = expenseDate;
+            calendarState.currentMonth = expenseDate.getMonth();
+            calendarState.currentYear = expenseDate.getFullYear();
+        }
     } else {
         if (formTitle) formTitle.textContent = 'Add Expense';
         if (expenseIdInput) expenseIdInput.value = '';
 
         // Set default date to today
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('expense-date').value = today;
+        const todayStr = today.toISOString().split('T')[0];
+        document.getElementById('expense-date').value = todayStr;
     }
+
+    // Update date display
+    updateDateTimeDisplay();
 
     formContainer.classList.remove('hidden');
 }
