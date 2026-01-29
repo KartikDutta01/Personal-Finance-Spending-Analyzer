@@ -22,7 +22,6 @@
  */
 
 import { validateFile, parseCSV, detectColumnMapping, extractTransactions, validateTransaction } from './csvParser.js';
-import { classifyBatch, learnFromCorrection } from './classifier.js';
 import { checkDuplicates, batchImportTransactions } from './expenses.js';
 
 /**
@@ -197,13 +196,16 @@ async function processFile(file) {
 
         updateState({ progress: 70 });
 
-        // Step 6: Classify transactions
-        const classifiedTransactions = classifyBatch(validatedTransactions);
+        // Step 6: Assign default category to transactions (classifier removed)
+        const categorizedTransactions = validatedTransactions.map(t => ({
+            ...t,
+            category: t.category || 'Other'
+        }));
 
         updateState({ progress: 90 });
 
         // Step 7: Sort by date descending
-        const sortedTransactions = sortTransactionsByDate(classifiedTransactions);
+        const sortedTransactions = sortTransactionsByDate(categorizedTransactions);
 
         // Calculate summary
         const summary = calculateSummary(sortedTransactions);
@@ -380,15 +382,8 @@ function updateTransactionCategory(index, category) {
     // Update the transaction category
     transactions[index] = {
         ...transaction,
-        category,
-        method: 'correction',
-        confidence: 1.0
+        category
     };
-
-    // Learn from this correction for future classifications
-    if (transaction.description) {
-        learnFromCorrection(transaction.description, category);
-    }
 
     updateState({
         transactions: [...transactions]

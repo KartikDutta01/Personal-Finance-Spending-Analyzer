@@ -16,7 +16,7 @@
 import { validateExpense, validateBudget } from './validation.js';
 import { createExpense, getExpenses, updateExpense, deleteExpense } from './expenses.js';
 import { getBudget, saveBudget, getAvailableBudget } from './budget.js';
-import { getCurrentMonthTotal, getCategoryBreakdown, checkOverspending, getMonthlyTotals, getTopCategories, getMonthOverMonthChange } from './analytics.js';
+import { getCurrentMonthTotal, checkOverspending, getMonthlyTotals, getTopCategories, getMonthOverMonthChange, getCategoryBreakdown } from './analytics.js';
 import { predictNextMonth } from './forecast.js';
 import { getBudgetPlan } from './ai.js';
 import { renderPieChart, renderLineChart, renderForecastChart, setupResponsiveCanvas } from './charts.js';
@@ -448,7 +448,7 @@ function formatDate(dateStr) {
  * 
  * @param {Array} expenses - Array of expense objects
  */
-function renderExpenseList(expenses) {
+async function renderExpenseList(expenses) {
     const listContainer = document.getElementById('expense-list');
     const emptyMessage = document.getElementById('no-expenses-message');
 
@@ -469,26 +469,57 @@ function renderExpenseList(expenses) {
     }
 
     // Render each expense
-    expenses.forEach(expense => {
+    for (const expense of expenses) {
         const item = document.createElement('li');
         item.className = 'expense-item';
         item.dataset.id = expense.id;
 
-        item.innerHTML = `
-            <div class="expense-item-info">
-                <span class="expense-item-name">${escapeHtml(expense.expense_name)}</span>
-                <span class="expense-item-category">${escapeHtml(expense.category)}</span>
-            </div>
-            <span class="expense-item-amount">${formatCurrency(expense.amount)}</span>
-            <span class="expense-item-date">${formatDate(expense.date)}</span>
-            <div class="expense-item-actions">
-                <button class="btn btn-secondary edit-expense-btn" data-id="${expense.id}">Edit</button>
-                <button class="btn btn-danger delete-expense-btn" data-id="${expense.id}">Delete</button>
-            </div>
-        `;
+        // Create expense item structure
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'expense-item-info';
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'expense-item-name';
+        nameSpan.textContent = expense.expense_name;
+
+        const categorySpan = document.createElement('span');
+        categorySpan.className = 'expense-item-category';
+        categorySpan.textContent = expense.category;
+
+        infoDiv.appendChild(nameSpan);
+        infoDiv.appendChild(categorySpan);
+
+        const amountSpan = document.createElement('span');
+        amountSpan.className = 'expense-item-amount';
+        amountSpan.textContent = formatCurrency(expense.amount);
+
+        const dateSpan = document.createElement('span');
+        dateSpan.className = 'expense-item-date';
+        dateSpan.textContent = formatDate(expense.date);
+
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'expense-item-actions';
+
+        const editBtn = document.createElement('button');
+        editBtn.className = 'btn btn-secondary edit-expense-btn';
+        editBtn.dataset.id = expense.id;
+        editBtn.textContent = 'Edit';
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'btn btn-danger delete-expense-btn';
+        deleteBtn.dataset.id = expense.id;
+        deleteBtn.textContent = 'Delete';
+
+        actionsDiv.appendChild(editBtn);
+        actionsDiv.appendChild(deleteBtn);
+
+        item.appendChild(infoDiv);
+        item.appendChild(amountSpan);
+        item.appendChild(dateSpan);
+        item.appendChild(actionsDiv);
 
         listContainer.appendChild(item);
-    });
+    }
 }
 
 /**
@@ -1177,7 +1208,7 @@ async function handleExpenseSubmit(e) {
 }
 
 /**
- * Handle clicks on expense list (edit/delete buttons)
+ * Handle clicks on expense list (edit/delete/split buttons)
  * 
  * @param {Event} e - Click event
  */

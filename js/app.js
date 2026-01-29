@@ -187,8 +187,12 @@ function setupAuthForms() {
     // Login form submission
     document.getElementById('login-form')?.addEventListener('submit', async (e) => {
         e.preventDefault();
+        console.log('Login form submitted');
+
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
+
+        console.log('Email:', email);
 
         // Validate inputs
         if (!validateEmail(email)) {
@@ -204,16 +208,34 @@ function setupAuthForms() {
         document.getElementById('login-password-error').textContent = '';
 
         // Attempt login
+        console.log('Attempting login...');
         showLoading();
-        const { error } = await login(email, password);
-        hideLoading();
 
-        if (error) {
-            document.getElementById('login-password-error').textContent = error.message;
-            showError(error.message);
-        } else {
-            showSuccess('Login successful');
-            console.log('Login successful');
+        try {
+            const result = await login(email, password);
+            console.log('Login result:', result);
+            hideLoading();
+
+            if (result.error) {
+                console.error('Login error:', result.error);
+                document.getElementById('login-password-error').textContent = result.error.message;
+                showError(result.error.message);
+            } else {
+                showSuccess('Login successful');
+                console.log('Login successful, redirecting to dashboard...');
+
+                // Explicitly redirect to dashboard after successful login
+                document.getElementById('auth-view').classList.add('hidden');
+                document.getElementById('main-app').classList.remove('hidden');
+
+                // Initialize UI and load dashboard
+                initEventListeners();
+                await renderDashboard();
+            }
+        } catch (err) {
+            console.error('Login exception:', err);
+            hideLoading();
+            showError('An unexpected error occurred. Please try again.');
         }
     });
 
@@ -260,7 +282,7 @@ function setupAuthForms() {
 
         // Attempt registration
         showLoading();
-        const { error } = await register(name, email, password, phone);
+        const { user, error } = await register(name, email, password, phone);
         hideLoading();
 
         if (error) {
@@ -269,6 +291,18 @@ function setupAuthForms() {
         } else {
             showSuccess('Registration successful');
             console.log('Registration successful');
+
+            // Check if user is auto-logged in after registration
+            const { session } = await getSession();
+            if (session) {
+                // Explicitly redirect to dashboard
+                document.getElementById('auth-view').classList.add('hidden');
+                document.getElementById('main-app').classList.remove('hidden');
+
+                // Initialize UI and load dashboard
+                initEventListeners();
+                await renderDashboard();
+            }
         }
     });
 

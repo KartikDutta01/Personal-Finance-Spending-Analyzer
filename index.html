@@ -375,6 +375,48 @@
                         <dd id="budget-available-display">₹0.00</dd>
                     </dl>
                 </article>
+
+                <!-- Custom Categories Section -->
+                <article class="card custom-categories-section" aria-labelledby="custom-categories-heading">
+                    <div class="custom-categories-header">
+                        <h3 id="custom-categories-heading">Custom Categories</h3>
+                        <span id="category-count-display" class="category-count-badge" aria-live="polite">0 / 20</span>
+                    </div>
+                    <p class="custom-categories-description">Create your own expense categories to organize spending
+                        according to your personal needs.</p>
+
+                    <!-- Add Category Form -->
+                    <form id="add-category-form" class="add-category-form" novalidate
+                        aria-label="Add new custom category">
+                        <div class="add-category-inputs">
+                            <div class="form-group category-name-group">
+                                <label for="new-category-name">Category Name</label>
+                                <input type="text" id="new-category-name" name="category_name"
+                                    placeholder="e.g., Pet Expenses" maxlength="50" required
+                                    aria-describedby="new-category-name-error">
+                                <span class="error-message" id="new-category-name-error" role="alert"
+                                    aria-live="assertive"></span>
+                            </div>
+                            <div class="form-group category-color-group">
+                                <label for="new-category-color">Color</label>
+                                <input type="color" id="new-category-color" name="category_color" value="#6B7280"
+                                    aria-label="Choose category color">
+                            </div>
+                            <button type="submit" id="add-category-btn" class="btn btn-primary add-category-btn">
+                                Add Category
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Custom Categories List -->
+                    <div id="custom-categories-list-container" class="custom-categories-list-container">
+                        <ul id="custom-categories-list" class="custom-categories-list" role="list"
+                            aria-label="Your custom categories"></ul>
+                        <p id="no-custom-categories-message" class="empty-state" aria-live="polite">No custom categories
+                            yet. Create one
+                            above!</p>
+                    </div>
+                </article>
             </section>
 
             <!-- AI Suggestions View -->
