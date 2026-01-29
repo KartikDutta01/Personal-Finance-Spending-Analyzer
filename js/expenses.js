@@ -271,6 +271,134 @@ async function getExpensesByCategory() {
     }
 }
 
+/**
+ * Check for duplicate transactions in existing expenses
+ * 
+ * @param {Array<Object>} transactions - Transactions to check for duplicates
+ * @param {string} transactions[].date - Date in YYYY-MM-DD format
+ * @param {number} transactions[].amount - Transaction amount
+ * @param {string} transactions[].description - Transaction description
+ * @returns {Promise<{duplicates: Array, unique: Array, error: Object|null}>}
+ * 
+ * Requirements: 5.8
+ */
+async function checkDuplicates(transactions) {
+    try {
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+        if (userError || !user) {
+            return { duplicates: [], unique: [], error: { message: 'User not authenticated' } };
+        }
+
+        // Get all existing expenses for the user
+        const { data: existingExpenses, error } = await supabase
+            .from('expenses')
+            .select('date, amount, expense_name')
+            .eq('user_id', user.id);
+
+        if (error) {
+            console.error('Error fetching expenses for duplicate check:', error);
+            return { duplicates: [], unique: [], error: { message: 'Unable to check for duplicates.' } };
+        }
+
+        const duplicates = [];
+        const unique = [];
+        const AMOUNT_TOLERANCE = 0.01;
+
+        for (const transaction of transactions) {
+            const isDuplicate = (existingExpenses || []).some(existing => {
+                // Check date match
+                const dateMatch = existing.date === transaction.date;
+
+                // Check amount match with 0.01 tolerance
+                const amountDiff = Math.abs(parseFloat(existing.amount) - parseFloat(transaction.amount));
+                const amountMatch = amountDiff <= AMOUNT_TOLERANCE;
+
+                // Check description match (case-insensitive)
+                const descriptionMatch = existing.expense_name.toLowerCase() === transaction.description.toLowerCase();
+
+                return dateMatch && amountMatch && descriptionMatch;
+            });
+
+            if (isDuplicate) {
+                duplicates.push(transaction);
+            } else {
+                unique.push(transaction);
+            }
+        }
+
+        return { duplicates, unique, error: null };
+    } catch (err) {
+        console.error('Check duplicates error:', err);
+        return { duplicates: [], unique: [], error: { message: 'An unexpected error occurred while checking for duplicates.' } };
+    }
+}
+
+/**
+ * Import multiple transactions in a single batch operation
+ * 
+ * @param {Array<Object>} transactions - Transactions to import
+ * @param {string} transactions[].date - Date in YYYY-MM-DD format
+ * @param {number} transactions[].amount - Transaction amount
+ * @param {string} transactions[].description - Transaction description
+ * @param {string} transactions[].category - Transaction category
+ * @returns {Promise<{imported: number, failed: Array, errors: Array}>}
+ * 
+ * Requirements: 5.4
+ */
+async function batchImportTransactions(transactions) {
+    try {
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+        if (userError || !user) {
+            return { imported: 0, failed: transactions, errors: ['User not authenticated'] };
+        }
+
+        if (!transactions || transactions.length === 0) {
+            return { imported: 0, failed: [], errors: [] };
+        }
+
+        // Prepare expense records for insertion
+        const expenseRecords = transactions.map(transaction => ({
+            user_id: user.id,
+            expense_name: transaction.description,
+            category: transaction.category,
+            amount: transaction.amount,
+            date: transaction.date
+        }));
+
+        // Insert all records in a single batch operation
+        const { data, error } = await supabase
+            .from('expenses')
+            .insert(expenseRecords)
+            .select();
+
+        if (error) {
+            console.error('Error batch importing transactions:', error);
+            // If batch insert fails completely, return all as failed
+            return {
+                imported: 0,
+                failed: transactions,
+                errors: ['Unable to save transactions. Please try again.']
+            };
+        }
+
+        // All transactions imported successfully
+        return {
+            imported: data.length,
+            failed: [],
+            errors: []
+        };
+    } catch (err) {
+        console.error('Batch import error:', err);
+        return {
+            imported: 0,
+            failed: transactions,
+            errors: ['An unexpected error occurred while importing transactions.']
+        };
+    }
+}
+
 // Export all expense functions
 export {
     createExpense,
@@ -278,5 +406,7 @@ export {
     getExpensesByMonth,
     updateExpense,
     deleteExpense,
-    getExpensesByCategory
+    getExpensesByCategory,
+    checkDuplicates,
+    batchImportTransactions
 };

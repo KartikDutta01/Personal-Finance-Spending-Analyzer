@@ -215,7 +215,20 @@
             <section id="expenses-view" class="view hidden">
                 <header class="view-header">
                     <h2>Expenses</h2>
-                    <button id="add-expense-btn" class="btn btn-primary">Add Expense</button>
+                    <div class="view-header-actions">
+                        <button id="import-transactions-btn" class="btn btn-secondary"
+                            title="Import transactions from bank statements (CSV, PDF, or image files)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            Import Transactions
+                        </button>
+                        <button id="add-expense-btn" class="btn btn-primary">Add Expense</button>
+                    </div>
                 </header>
 
                 <!-- Add/Edit Expense Form -->
@@ -412,6 +425,162 @@
                 </div>
             </section>
         </main>
+    </div>
+
+    <!-- Import Transactions Dialog -->
+    <div id="import-dialog-overlay" class="import-dialog-overlay hidden">
+        <div id="import-dialog" class="import-dialog" role="dialog" aria-labelledby="import-dialog-title"
+            aria-modal="true">
+            <!-- Dialog Header -->
+            <div class="import-dialog-header">
+                <h2 id="import-dialog-title" class="import-dialog-title">Import Transactions</h2>
+                <button id="import-dialog-close" class="import-dialog-close-btn" aria-label="Close dialog">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Dialog Content -->
+            <div class="import-dialog-content">
+                <!-- Upload Section -->
+                <div id="import-upload-section" class="import-upload-section">
+                    <!-- User guidance section -->
+                    <div class="import-guidance">
+                        <h3 class="import-guidance-title">What is this?</h3>
+                        <p class="import-guidance-text">
+                            Quickly add multiple transactions by uploading your bank statement or transaction history.
+                            This saves time compared to adding expenses one by one.
+                        </p>
+                        <div class="import-guidance-formats">
+                            <span class="import-format-badge">CSV</span>
+                            <span class="import-format-badge">PDF</span>
+                            <span class="import-format-badge">PNG</span>
+                            <span class="import-format-badge">JPG</span>
+                        </div>
+                    </div>
+
+                    <div id="import-dropzone" class="import-dropzone" role="button" tabindex="0"
+                        aria-label="Drop your file here or click to select">
+                        <div class="import-dropzone-content">
+                            <svg class="import-dropzone-icon" xmlns="http://www.w3.org/2000/svg" width="48" height="48"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            <p class="import-dropzone-text">Drag and drop your file here</p>
+                            <p class="import-dropzone-subtext">or click to select a file</p>
+                            <p class="import-dropzone-hint">Supported: CSV, PDF, PNG, JPG (Max 5MB)</p>
+                        </div>
+                        <input type="file" id="import-file-input" class="import-file-input"
+                            accept=".csv,.pdf,.png,.jpg,.jpeg" aria-hidden="true">
+                    </div>
+
+                    <!-- Tips section -->
+                    <div class="import-tips">
+                        <p class="import-tips-title">Tips for best results:</p>
+                        <ul class="import-tips-list">
+                            <li>CSV files work best - download from your bank's website</li>
+                            <li>For PDF/images, ensure text is clear and readable</li>
+                            <li>Include columns: Date, Amount, Description</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Preview Section (hidden initially) -->
+                <div id="import-preview-section" class="import-preview-section hidden">
+                    <!-- Summary -->
+                    <div id="import-summary" class="import-summary">
+                        <div class="import-summary-item">
+                            <span class="import-summary-label">Total</span>
+                            <span id="import-summary-total" class="import-summary-value">0</span>
+                        </div>
+                        <div class="import-summary-item">
+                            <span class="import-summary-label">Valid</span>
+                            <span id="import-summary-valid" class="import-summary-value import-summary-valid">0</span>
+                        </div>
+                        <div class="import-summary-item">
+                            <span class="import-summary-label">Invalid</span>
+                            <span id="import-summary-invalid"
+                                class="import-summary-value import-summary-invalid">0</span>
+                        </div>
+                        <div class="import-summary-item">
+                            <span class="import-summary-label">Selected</span>
+                            <span id="import-summary-selected" class="import-summary-value">0</span>
+                        </div>
+                        <div class="import-summary-item import-summary-amount">
+                            <span class="import-summary-label">Total Amount</span>
+                            <span id="import-summary-amount" class="import-summary-value">₹0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Preview Table -->
+                    <div class="import-table-container">
+                        <table id="import-preview-table" class="import-preview-table">
+                            <thead>
+                                <tr>
+                                    <th class="import-table-checkbox">
+                                        <input type="checkbox" id="import-select-all"
+                                            aria-label="Select all transactions">
+                                    </th>
+                                    <th class="import-table-date">Date</th>
+                                    <th class="import-table-amount">Amount</th>
+                                    <th class="import-table-description">Description</th>
+                                    <th class="import-table-category">Category</th>
+                                    <th class="import-table-status">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="import-preview-tbody">
+                                <!-- Transaction rows will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Progress Section (hidden initially) -->
+                <div id="import-progress-section" class="import-progress-section hidden">
+                    <div class="import-progress-container">
+                        <div class="import-progress-bar">
+                            <div id="import-progress-fill" class="import-progress-fill" style="width: 0%"></div>
+                        </div>
+                        <p id="import-progress-text" class="import-progress-text">Importing transactions...</p>
+                    </div>
+                </div>
+
+                <!-- Alert Section -->
+                <div id="import-alert-section" class="import-alert-section">
+                    <div id="import-alert-success" class="import-alert import-alert-success hidden" role="alert">
+                        <svg class="import-alert-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                        <span id="import-alert-success-text"></span>
+                    </div>
+                    <div id="import-alert-error" class="import-alert import-alert-error hidden" role="alert">
+                        <svg class="import-alert-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="15" y1="9" x2="9" y2="15"></line>
+                            <line x1="9" y1="9" x2="15" y2="15"></line>
+                        </svg>
+                        <span id="import-alert-error-text"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dialog Footer -->
+            <div class="import-dialog-footer">
+                <button id="import-cancel-btn" class="btn btn-secondary">Cancel</button>
+                <button id="import-submit-btn" class="btn btn-primary" disabled>Import Selected</button>
+            </div>
+        </div>
     </div>
 
     <!-- JavaScript Modules -->

@@ -21,6 +21,7 @@ import { predictNextMonth } from './forecast.js';
 import { getBudgetPlan } from './ai.js';
 import { renderPieChart, renderLineChart, renderForecastChart, setupResponsiveCanvas } from './charts.js';
 import { logout } from './auth.js';
+import { initImportDialog, openImportDialog, closeImportDialog } from './transactionImport.js';
 
 /**
  * Toast message duration in milliseconds
@@ -864,6 +865,20 @@ function initEventListeners() {
     // Initialize calendar
     initCalendarListeners();
 
+    // Initialize import dialog
+    initImportDialog();
+
+    // Listen for expenses-updated event (from import dialog)
+    document.addEventListener('expenses-updated', async () => {
+        await loadExpenseList();
+
+        // Also refresh dashboard if visible
+        const dashboardView = document.getElementById('dashboard-view');
+        if (dashboardView && !dashboardView.classList.contains('hidden')) {
+            await renderDashboard();
+        }
+    });
+
     // Desktop Navigation links
     document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
@@ -1363,5 +1378,7 @@ export {
     loadBudgetSettings,
     formatCurrency,
     formatDate,
-    cleanup
+    cleanup,
+    openImportDialog,
+    closeImportDialog
 };

@@ -37,6 +37,9 @@ import {
     initEventListeners
 } from './ui.js';
 
+// Import transaction import module
+import { initImportDialog } from './transactionImport.js';
+
 /**
  * Verify core infrastructure components
  * Logs verification results to console

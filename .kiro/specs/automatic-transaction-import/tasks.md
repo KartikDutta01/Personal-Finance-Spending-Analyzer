@@ -1,0 +1,231 @@
+# Implementation Plan: Automatic Transaction Import
+
+## Overview
+
+This implementation plan breaks down the Automatic Transaction Import feature into discrete coding tasks. Each task builds incrementally on previous work, ensuring no orphaned code. The implementation follows the modular architecture defined in the design document, using vanilla JavaScript and shadcn/ui components.
+
+## Tasks
+
+- [x] 1. Set up CSV Parser module foundation
+  - [x] 1.1 Create js/csvParser.js with file validation functions
+    - Implement validateFile() to check .csv extension and 5MB size limit
+    - Export validation error messages
+    - _Requirements: 1.2, 1.5_
+  - [ ]* 1.2 Write property test for file validation
+    - **Property 1: File Validation**
+    - **Validates: Requirements 1.2, 1.5**
+  - [x] 1.3 Implement CSV parsing core functions
+    - Implement parseCSV() with delimiter detection (comma, semicolon, tab)
+    - Handle quoted fields and escape characters
+    - Implement whitespace trimming for all values
+    - _Requirements: 2.1, 2.8, 2.9_
+  - [ ]* 1.4 Write property test for CSV parsing round-trip
+    - **Property 2: CSV Parsing Round-Trip**
+    - **Validates: Requirements 2.1, 2.2, 2.8, 2.9**
+
+- [x] 2. Implement column detection and transaction extraction
+  - [x] 2.1 Implement detectColumnMapping() function
+    - Match headers against predefined column name mappings (case-insensitive)
+    - Return column indices for date, amount, description
+    - Handle missing columns with appropriate errors
+    - _Requirements: 2.3, 2.4_
+  - [ ]* 2.2 Write property test for header column detection
+    - **Property 3: Header Column Detection**
+    - **Validates: Requirements 2.3**
+  - [x] 2.3 Implement extractTransactions() function
+    - Extract raw transactions from parsed CSV data using column mapping
+    - Include row numbers for error reporting
+    - _Requirements: 2.1_
+  - [x] 2.4 Implement validateTransaction() function
+    - Validate date format (support common formats: YYYY-MM-DD, DD/MM/YYYY, MM/DD/YYYY)
+    - Validate amount is positive number
+    - Validate required fields are not empty
+    - Return specific error messages for each validation failure
+    - _Requirements: 2.5, 2.6, 2.7_
+  - [ ]* 2.5 Write property test for transaction row validation
+    - **Property 4: Transaction Row Validation**
+    - **Validates: Requirements 2.4, 2.5, 2.6, 2.7**
+
+- [x] 3. Checkpoint - CSV Parser complete
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 4. Implement Category Classifier module
+  - [x] 4.1 Create js/classifier.js with classification rules
+    - Define CLASSIFICATION_RULES array with regex patterns for common merchants
+    - Implement matchRules() to match descriptions against rules
+    - _Requirements: 4.2_
+  - [x] 4.2 Implement classifyTransaction() function
+    - Try rule-based matching first
+    - Fall back to AI classification for unmatched descriptions
+    - Return category, confidence, and method
+    - Default to "Other" when confidence is low
+    - _Requirements: 4.1, 4.3, 4.4, 4.5_
+  - [ ]* 4.3 Write property test for category classification correctness
+    - **Property 8: Category Classification Correctness**
+    - **Validates: Requirements 4.1, 4.2, 4.3, 4.4, 4.5**
+  - [x] 4.4 Implement classifyBatch() for bulk classification
+    - Process array of transactions efficiently
+    - _Requirements: 4.1_
+  - [x] 4.5 Implement learnFromCorrection() for user feedback
+    - Store corrections in localStorage for persistence
+    - Apply learned corrections in future classifications
+    - _Requirements: 4.7_
+  - [ ]* 4.6 Write property test for classification learning
+    - **Property 9: Classification Learning**
+    - **Validates: Requirements 4.7**
+
+- [x] 5. Checkpoint - Classifier complete
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 6. Extend Expenses module for batch import
+  - [x] 6.1 Add checkDuplicates() function to js/expenses.js
+    - Query existing expenses for matching date, amount, description
+    - Use case-insensitive description matching
+    - Use 0.01 tolerance for amount comparison
+    - _Requirements: 5.8_
+  - [ ]* 6.2 Write property test for duplicate detection
+    - **Property 11: Duplicate Detection**
+    - **Validates: Requirements 5.8**
+  - [x] 6.3 Add batchImportTransactions() function to js/expenses.js
+    - Insert multiple transactions in a single batch operation
+    - Return count of imported and failed transactions
+    - Handle partial failures gracefully
+    - _Requirements: 5.4_
+  - [ ]* 6.4 Write property test for import creates correct expense records
+    - **Property 12: Import Creates Correct Expense Records**
+    - **Validates: Requirements 5.4, 8.4**
+
+- [x] 7. Implement Transaction Import Controller
+  - [x] 7.1 Create js/transactionImport.js with state management
+    - Define ImportState structure
+    - Implement getState() and state update functions
+    - _Requirements: 6.4_
+  - [x] 7.2 Implement processFile() workflow function
+    - Orchestrate file validation, parsing, extraction, and classification
+    - Update state at each step
+    - Handle errors and preserve state
+    - _Requirements: 2.1, 4.1_
+  - [x] 7.3 Implement calculateSummary() function
+    - Calculate total, valid, invalid, selected counts
+    - Calculate total amount for selected valid transactions
+    - _Requirements: 3.4_
+  - [ ]* 7.4 Write property test for preview summary calculation
+    - **Property 5: Preview Summary Calculation**
+    - **Validates: Requirements 3.4**
+  - [x] 7.5 Implement sortTransactionsByDate() function
+    - Sort transactions by date descending
+    - _Requirements: 3.7_
+  - [ ]* 7.6 Write property test for transaction sorting
+    - **Property 6: Transaction Sorting**
+    - **Validates: Requirements 3.7**
+  - [x] 7.7 Implement selection functions
+    - toggleTransactionSelection() for individual selection
+    - selectAllTransactions() for bulk selection
+    - Prevent selection of invalid transactions
+    - _Requirements: 3.6_
+  - [ ]* 7.8 Write property test for select all toggle
+    - **Property 7: Select All Toggle**
+    - **Validates: Requirements 3.6**
+  - [x] 7.9 Implement updateTransactionCategory() function
+    - Update category for a specific transaction
+    - Trigger learning from correction
+    - _Requirements: 3.5, 4.7_
+  - [x] 7.10 Implement importTransactions() function
+    - Filter selected valid transactions
+    - Check for duplicates
+    - Call batch import
+    - Update state with results
+    - _Requirements: 5.1, 5.3_
+  - [ ]* 7.11 Write property test for import selection correctness
+    - **Property 10: Import Selection Correctness**
+    - **Validates: Requirements 5.1**
+  - [x] 7.12 Implement cleanup functions
+    - closeImportDialog() to clear all temporary data
+    - Reset state to initial values
+    - _Requirements: 6.5, 8.5_
+  - [ ]* 7.13 Write property test for cleanup on dialog close
+    - **Property 14: Cleanup on Dialog Close**
+    - **Validates: Requirements 6.5, 8.5**
+
+- [x] 8. Checkpoint - Import logic complete
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 9. Build Import Dialog UI
+  - [x] 9.1 Add Import Dialog HTML structure to index.html
+    - Create dialog container with shadcn/ui Dialog structure
+    - Add file upload area with drag-and-drop zone
+    - Add file input for click-to-select
+    - _Requirements: 7.1, 1.1, 1.4_
+  - [x] 9.2 Add Preview Table HTML structure
+    - Create table with columns: checkbox, date, amount, description, category, status
+    - Add summary section for counts and total amount
+    - Add action buttons (Import Selected, Cancel)
+    - _Requirements: 7.2, 3.1, 3.2_
+  - [x] 9.3 Add Progress and Alert components
+    - Add progress bar for import operation
+    - Add alert containers for success/error messages
+    - _Requirements: 7.4, 7.5, 5.2_
+  - [x] 9.4 Add Import Dialog styles to styles.css
+    - Style dialog overlay and container
+    - Style file upload area with drag-and-drop states
+    - Style preview table with row highlighting for invalid rows
+    - Style progress bar and alerts
+    - Ensure responsive layout for mobile/desktop
+    - _Requirements: 7.6, 7.7, 3.3_
+
+- [x] 10. Wire up Import Dialog interactions
+  - [x] 10.1 Implement initImportDialog() in transactionImport.js
+    - Set up event listeners for dialog open/close
+    - Set up file input change handler
+    - Set up drag-and-drop handlers
+    - _Requirements: 1.1, 1.4_
+  - [x] 10.2 Implement handleFileSelect() function
+    - Validate file and show errors if invalid
+    - Process file and update UI with preview
+    - _Requirements: 1.2, 1.3, 1.5, 1.6_
+  - [x] 10.3 Implement renderPreviewTable() function
+    - Render transactions in table format
+    - Add category dropdown for each row
+    - Add checkbox for selection
+    - Highlight invalid rows
+    - _Requirements: 3.1, 3.2, 3.3, 3.5_
+  - [x] 10.4 Implement renderSummary() function
+    - Display transaction counts and total amount
+    - Update on selection changes
+    - _Requirements: 3.4_
+  - [x] 10.5 Implement import button handler
+    - Show progress indicator
+    - Prevent duplicate submissions
+    - Call importTransactions()
+    - Show success/error messages
+    - Refresh expense list on success
+    - _Requirements: 5.1, 5.2, 5.3, 5.5, 5.6, 5.7_
+  - [x] 10.6 Add Import button to Expenses view header
+    - Add button next to "Add Expense" button
+    - Wire up click handler to open import dialog
+    - _Requirements: 1.1_
+
+- [x] 11. Integrate with existing app
+  - [x] 11.1 Update js/app.js to initialize import module
+    - Import transactionImport module
+    - Call initImportDialog() on app initialization
+    - _Requirements: 9.1_
+  - [x] 11.2 Update js/ui.js to support import dialog
+    - Add openImportDialog() and closeImportDialog() to UI module
+    - Integrate with existing showSuccess/showError functions
+    - _Requirements: 6.1, 6.2, 6.3_
+
+- [x] 12. Final checkpoint - Feature complete
+  - Ensure all tests pass, ask the user if questions arise.
+  - Verify import workflow end-to-end
+  - Test with sample CSV files
+
+## Notes
+
+- Tasks marked with `*` are optional and can be skipped for faster MVP
+- Each task references specific requirements for traceability
+- Checkpoints ensure incremental validation
+- Property tests validate universal correctness properties
+- Unit tests validate specific examples and edge cases
+- The implementation uses vanilla JavaScript to match the existing codebase
+- shadcn/ui components are implemented as HTML/CSS patterns (not React components)
