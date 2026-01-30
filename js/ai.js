@@ -290,67 +290,67 @@ function generateTips(analysis) {
 
     const tips = [];
 
-    // Tip templates for each category
+    // Tip templates for each category - Simple, easy to understand language
     const tipTemplates = {
         'Food & Dining': [
-            'Consider meal prepping on weekends to reduce dining out expenses',
-            'Use grocery store apps for coupons and cashback on food purchases',
-            'Try cooking at home more often - even 2 extra meals per week can save significantly'
+            'Cook meals at home on weekends — you\'ll save a lot!',
+            'Use apps like Swiggy or Zomato for deals and discounts',
+            'Eating out 2 times less per week can save you thousands'
         ],
         'Transportation': [
-            'Consider carpooling or public transit for your commute',
-            'Combine errands into single trips to save on fuel',
-            'Check if your employer offers transit benefits or parking subsidies'
+            'Try carpooling or metro — it\'s cheaper than driving alone',
+            'Do all your errands in one trip to save on fuel',
+            'Walk or bike for short distances — good for health and wallet!'
         ],
         'Entertainment': [
-            'Look for free local events and activities in your area',
-            'Consider sharing streaming subscriptions with family members',
-            'Set a monthly entertainment budget and track it separately'
+            'Look for free events in your city — parks, festivals, etc.',
+            'Share Netflix or Spotify with family to split the cost',
+            'Set a fun budget each month and stick to it'
         ],
         'Shopping': [
-            'Implement a 24-hour rule before making non-essential purchases',
-            'Unsubscribe from retail email lists to reduce impulse buying',
-            'Try a no-spend challenge for one week each month'
+            'Wait 24 hours before buying — you might not need it!',
+            'Unsubscribe from sale emails to avoid temptation',
+            'Try one "no shopping" week each month'
         ],
         'Subscriptions': [
-            'Audit your subscriptions - cancel any you haven\'t used in 30 days',
-            'Look for annual payment options that offer discounts',
-            'Share family plans for streaming and software services'
+            'Check your subscriptions — cancel what you don\'t use',
+            'Pay yearly instead of monthly for better deals',
+            'Share family plans with others to save money'
         ],
         'Utilities': [
-            'Adjust your thermostat by 2 degrees to save on heating/cooling',
-            'Switch to LED bulbs and unplug devices when not in use',
-            'Consider a programmable thermostat for automatic savings'
+            'Turn off AC/heater when not needed — small change, big savings',
+            'Switch to LED bulbs — they use less electricity',
+            'Unplug chargers and devices when not in use'
         ],
         'Personal Care': [
-            'Look for salon schools that offer discounted services',
-            'Buy personal care items in bulk when on sale',
-            'Try DIY treatments for some personal care routines'
+            'Look for deals at local salons or try DIY at home',
+            'Buy toiletries in bulk when they\'re on sale',
+            'Simple home remedies work great for skin and hair!'
         ],
         'Travel': [
-            'Book travel during off-peak seasons for better rates',
-            'Use price comparison tools and set fare alerts',
-            'Consider staycations or local day trips as alternatives'
+            'Book trips during off-season for cheaper rates',
+            'Compare prices on different apps before booking',
+            'Try local trips instead of expensive vacations'
         ],
         'Housing': [
-            'Review your insurance policies annually for better rates',
-            'Consider refinancing if interest rates have dropped',
-            'Negotiate with service providers for better rates'
+            'Compare insurance prices once a year — you might find better deals',
+            'Talk to your landlord about rent — negotiation helps!',
+            'Check if you\'re paying for services you don\'t use'
         ],
         'Healthcare': [
-            'Use generic medications when available',
-            'Take advantage of preventive care covered by insurance',
-            'Compare prices at different pharmacies for prescriptions'
+            'Ask for generic medicines — they work the same but cost less',
+            'Use your insurance for free health checkups',
+            'Compare medicine prices at different pharmacies'
         ],
         'Education': [
-            'Look for free online courses and educational resources',
-            'Check if your employer offers tuition reimbursement',
-            'Buy used textbooks or rent instead of buying new'
+            'Try free courses on YouTube or Coursera',
+            'Ask your company if they pay for courses or training',
+            'Buy second-hand books or use library instead'
         ],
         'Other': [
-            'Track this spending category more closely to identify patterns',
-            'Consider if these expenses can be categorized more specifically',
-            'Set a specific budget limit for miscellaneous expenses'
+            'Keep track of these expenses to see where money goes',
+            'Try to put these expenses in specific categories',
+            'Set a limit for random expenses each month'
         ]
     };
 
@@ -381,7 +381,7 @@ function generateTips(analysis) {
     if (trend.direction === 'up' && monthOverMonth.percentage > 10) {
         tips.push({
             category: 'General',
-            message: `Your spending increased by ${monthOverMonth.percentage}% this month. Consider reviewing recent purchases to identify areas to cut back.`,
+            message: `You spent ${monthOverMonth.percentage}% more this month. Take a look at what you bought recently — small cuts can help!`,
             potentialSavings: Math.round(monthOverMonth.currentMonth * 0.1 * 100) / 100,
             priority: 'high'
         });
@@ -421,7 +421,7 @@ function generateSavingPlans(analysis) {
 
     const shortTerm = {
         type: 'short-term',
-        name: 'Emergency Fund',
+        name: 'Rainy Day Fund',
         targetAmount: Math.round(shortTermTarget * 100) / 100,
         monthlyContribution: shortTermMonthly,
         timeframeMonths: Math.min(shortTermMonths, 36), // Cap at 3 years
@@ -435,7 +435,7 @@ function generateSavingPlans(analysis) {
 
     const longTerm = {
         type: 'long-term',
-        name: 'Financial Freedom Fund',
+        name: 'Future Goals Fund',
         targetAmount: Math.round(longTermTarget * 100) / 100,
         monthlyContribution: longTermMonthly,
         timeframeMonths: Math.min(longTermMonths, 120), // Cap at 10 years
@@ -457,7 +457,7 @@ function generateMilestones(target, monthly, type) {
     const milestones = [];
 
     if (monthly <= 0 || target <= 0) {
-        return ['Set up automatic transfers to start saving'];
+        return ['Start by setting up auto-transfer to your savings'];
     }
 
     const percentages = type === 'short-term' ? [25, 50, 75, 100] : [10, 25, 50, 75, 100];
@@ -468,16 +468,16 @@ function generateMilestones(target, monthly, type) {
         const formattedAmount = `₹${amount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
 
         if (months <= 1) {
-            milestones.push(`${pct}% (${formattedAmount}) - Achievable in your first month!`);
+            milestones.push(`${pct}% done (${formattedAmount}) — You can do this in 1 month! 🎉`);
         } else if (months <= 12) {
-            milestones.push(`${pct}% (${formattedAmount}) - Target: ${months} months`);
+            milestones.push(`${pct}% done (${formattedAmount}) — About ${months} months`);
         } else {
             const years = Math.floor(months / 12);
             const remainingMonths = months % 12;
             if (remainingMonths === 0) {
-                milestones.push(`${pct}% (${formattedAmount}) - Target: ${years} year${years > 1 ? 's' : ''}`);
+                milestones.push(`${pct}% done (${formattedAmount}) — About ${years} year${years > 1 ? 's' : ''}`);
             } else {
-                milestones.push(`${pct}% (${formattedAmount}) - Target: ${years} year${years > 1 ? 's' : ''}, ${remainingMonths} month${remainingMonths > 1 ? 's' : ''}`);
+                milestones.push(`${pct}% done (${formattedAmount}) — About ${years} year${years > 1 ? 's' : ''} ${remainingMonths} month${remainingMonths > 1 ? 's' : ''}`);
             }
         }
     }
@@ -524,7 +524,7 @@ async function getBudgetPlan() {
                 longTermPlan: null,
                 summary: '',
                 hasEnoughData: false,
-                message: `We need at least ${MIN_MONTHS_FOR_ANALYSIS} months of expense data to provide personalized recommendations. You currently have ${analysis.monthsWithData} month(s) of data. Keep tracking your expenses and check back soon!`
+                message: `Add some expenses first! We need at least 1 month of data to give you a personalized plan. You have ${analysis.monthsWithData} month(s) so far.`
             };
         }
 
@@ -538,7 +538,7 @@ async function getBudgetPlan() {
                 longTermPlan: null,
                 summary: '',
                 hasEnoughData: true,
-                message: 'Please set up your budget with your monthly income to receive personalized recommendations.'
+                message: 'First, go to Budget and add your monthly income. Then we can create your plan!'
             };
         }
 
@@ -580,7 +580,7 @@ async function getBudgetPlan() {
             longTermPlan: null,
             summary: '',
             hasEnoughData: false,
-            message: 'An error occurred while generating your budget plan. Please try again.'
+            message: 'Oops! Something went wrong. Please try again.'
         };
     }
 }
@@ -599,40 +599,40 @@ function generateSummary(analysis, categoryLimits, idealSavingsPercentage, tips)
 
     const parts = [];
 
-    // Overall financial health assessment
+    // Overall financial health - simple language
     const spendingRatio = currentMonthTotal / availableBudget;
     if (spendingRatio <= 0.8) {
-        parts.push('Great job! You\'re spending within your budget this month.');
+        parts.push('You\'re doing great! 👍 Spending is under control this month.');
     } else if (spendingRatio <= 1) {
-        parts.push('You\'re close to your budget limit this month. Consider reviewing your spending.');
+        parts.push('You\'re almost at your limit this month. Be careful with spending!');
     } else {
-        parts.push('You\'ve exceeded your available budget this month. Let\'s work on getting back on track.');
+        parts.push('You\'ve spent more than planned this month. Let\'s fix this together!');
     }
 
-    // Trend insight
+    // Trend insight - simple
     if (trend.direction === 'up') {
-        parts.push('Your spending has been trending upward recently.');
+        parts.push('Your spending is going up lately.');
     } else if (trend.direction === 'down') {
-        parts.push('Good news! Your spending has been trending downward.');
+        parts.push('Nice! You\'re spending less than before. 🎉');
     }
 
-    // Savings recommendation
+    // Savings recommendation - simple
     const currentSavingsRate = ((monthlyIncome - currentMonthTotal) / monthlyIncome) * 100;
     if (currentSavingsRate < idealSavingsPercentage) {
-        parts.push(`We recommend saving ${idealSavingsPercentage}% of your income. You're currently at ${Math.round(currentSavingsRate)}%.`);
+        parts.push(`Try to save ${idealSavingsPercentage}% of your income. Right now you\'re at ${Math.round(currentSavingsRate)}%.`);
     } else {
-        parts.push(`Excellent! You're saving ${Math.round(currentSavingsRate)}% of your income, which exceeds our recommendation of ${idealSavingsPercentage}%.`);
+        parts.push(`Amazing! You\'re saving ${Math.round(currentSavingsRate)}% — that\'s better than the ${idealSavingsPercentage}% we suggest! 🌟`);
     }
 
-    // Top tip highlight
+    // Top tip - simple
     if (tips.length > 0) {
         const topTip = tips[0];
-        parts.push(`Top suggestion: Focus on ${topTip.category} where you could save up to ${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(topTip.potentialSavings)}.`);
+        parts.push(`Tip: Cut back on ${topTip.category} — you could save ${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(topTip.potentialSavings)}!`);
     }
 
-    // Forecast mention
+    // Forecast - simple
     if (forecast.confidence !== 'low') {
-        parts.push(`Based on your patterns, we predict next month's spending will be around ${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(forecast.prediction)}.`);
+        parts.push(`Next month, you\'ll probably spend around ${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(forecast.prediction)}.`);
     }
 
     return parts.join(' ');

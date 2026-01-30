@@ -643,3 +643,516 @@ export {
     calculateLineChartPoints,
     CHART_COLORS
 };
+
+/**
+ * Renders an interactive spending trends line chart with smooth transitions and tooltips
+ * @param {HTMLCanvasElement} canvas - The canvas element
+ * @param {Array<{periodKey: string, periodLabel: string, total: number}>} data - Spending trends data
+ * @param {Object} options - Chart options
+ * @param {Function} options.onHover - Callback when hovering over a data point
+ * @param {boolean} options.animate - Whether to animate the chart
+ */
+export function renderSpendingTrendsChart(canvas, data, options = {}) {
+    const ctx = prepareCanvas(canvas);
+    if (!ctx) {
+        displayNoDataMessage(canvas, 'Canvas not supported');
+        return;
+    }
+
+    if (!data || data.length === 0) {
+        displayNoDataMessage(canvas, 'No spending data available');
+        return;
+    }
+
+    const width = canvas.displayWidth;
+    const height = canvas.displayHeight;
+
+    // Chart margins
+    const margin = { top: 30, right: 30, bottom: 60, left: 70 };
+    const chartWidth = width - margin.left - margin.right;
+    const chartHeight = height - margin.top - margin.bottom;
+
+    // Find data range
+    const values = data.map(d => d.total);
+    const maxValue = Math.max(...values) * 1.1; // Add 10% padding
+    const minValue = Math.min(0, Math.min(...values));
+    const valueRange = maxValue - minValue || 1;
+
+    // Calculate scales
+    const xStep = chartWidth / Math.max(data.length - 1, 1);
+    const yScale = chartHeight / valueRange;
+
+    // Draw background grid
+    ctx.strokeStyle = '#E5E7EB';
+    ctx.lineWidth = 1;
+
+    // Horizontal grid lines
+    const gridLines = 5;
+    for (let i = 0; i <= gridLines; i++) {
+        const y = margin.top + (chartHeight / gridLines) * i;
+        ctx.beginPath();
+        ctx.setLineDash([4, 4]);
+        ctx.moveTo(margin.left, y);
+        ctx.lineTo(width - margin.right, y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Y-axis labels
+        const value = maxValue - (valueRange / gridLines) * i;
+        ctx.fillStyle = '#6B7280';
+        ctx.font = '11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`${formatNumber(value)}`, margin.left - 10, y);
+    }
+
+    // Draw axes
+    ctx.strokeStyle = '#D1D5DB';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.moveTo(margin.left, margin.top);
+    ctx.lineTo(margin.left, height - margin.bottom);
+    ctx.lineTo(width - margin.right, height - margin.bottom);
+    ctx.stroke();
+
+    // Calculate points
+    const points = data.map((item, index) => ({
+        x: margin.left + index * xStep,
+        y: margin.top + chartHeight - ((item.total - minValue) * yScale),
+        data: item
+    }));
+
+    // Draw gradient fill under the line
+    const gradient = ctx.createLinearGradient(0, margin.top, 0, height - margin.bottom);
+    gradient.addColorStop(0, 'rgba(8, 145, 178, 0.3)');
+    gradient.addColorStop(1, 'rgba(8, 145, 178, 0.02)');
+
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.moveTo(margin.left, height - margin.bottom);
+
+    // Use bezier curves for smooth line
+    if (points.length > 1) {
+        ctx.lineTo(points[0].x, points[0].y);
+        for (let i = 0; i < points.length - 1; i++) {
+            const xc = (points[i].x + points[i + 1].x) / 2;
+            const yc = (points[i].y + points[i + 1].y) / 2;
+            ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
+        }
+        ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
+    } else if (points.length === 1) {
+        ctx.lineTo(points[0].x, points[0].y);
+    }
+
+    ctx.lineTo(points[points.length - 1]?.x || margin.left, height - margin.bottom);
+    ctx.closePath();
+    ctx.fill();
+
+    // Draw the line with smooth curves
+    ctx.strokeStyle = '#0891b2';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+
+    if (points.length > 1) {
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 0; i < points.length - 1; i++) {
+            const xc = (points[i].x + points[i + 1].x) / 2;
+            const yc = (points[i].y + points[i + 1].y) / 2;
+            ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
+        }
+        ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
+    } else if (points.length === 1) {
+        ctx.moveTo(points[0].x - 5, points[0].y);
+        ctx.lineTo(points[0].x + 5, points[0].y);
+    }
+    ctx.stroke();
+
+    // Draw data points
+    points.forEach((point, index) => {
+        // Outer circle
+        ctx.fillStyle = '#0891b2';
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Inner circle
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        // X-axis labels
+        ctx.fillStyle = '#6B7280';
+        ctx.font = '10px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+
+        // Rotate labels if there are many data points
+        const label = point.data.periodLabel || point.data.periodKey;
+        if (data.length > 6) {
+            ctx.save();
+            ctx.translate(point.x, height - margin.bottom + 8);
+            ctx.rotate(-Math.PI / 4);
+            ctx.textAlign = 'right';
+            ctx.fillText(truncateText(ctx, label, 60), 0, 0);
+            ctx.restore();
+        } else {
+            ctx.fillText(label, point.x, height - margin.bottom + 8);
+        }
+    });
+
+    // Store points for hover detection
+    canvas._chartPoints = points;
+    canvas._chartMargin = margin;
+
+    // Set up hover interaction if callback provided
+    if (options.onHover) {
+        setupChartHoverInteraction(canvas, points, options.onHover);
+    }
+}
+
+/**
+ * Set up hover interaction for chart
+ * @param {HTMLCanvasElement} canvas - The canvas element
+ * @param {Array} points - Data points with x, y coordinates
+ * @param {Function} onHover - Callback when hovering
+ */
+function setupChartHoverInteraction(canvas, points, onHover) {
+    const handleMouseMove = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        // Find closest point
+        let closestPoint = null;
+        let minDistance = Infinity;
+
+        points.forEach(point => {
+            const distance = Math.sqrt(Math.pow(point.x - x, 2) + Math.pow(point.y - y, 2));
+            if (distance < minDistance && distance < 30) {
+                minDistance = distance;
+                closestPoint = point;
+            }
+        });
+
+        if (closestPoint) {
+            canvas.style.cursor = 'pointer';
+            onHover({
+                point: closestPoint,
+                x: closestPoint.x,
+                y: closestPoint.y,
+                data: closestPoint.data
+            });
+        } else {
+            canvas.style.cursor = 'default';
+            onHover(null);
+        }
+    };
+
+    const handleMouseLeave = () => {
+        canvas.style.cursor = 'default';
+        onHover(null);
+    };
+
+    // Remove existing listeners
+    canvas.removeEventListener('mousemove', canvas._hoverHandler);
+    canvas.removeEventListener('mouseleave', canvas._leaveHandler);
+
+    // Add new listeners
+    canvas._hoverHandler = handleMouseMove;
+    canvas._leaveHandler = handleMouseLeave;
+    canvas.addEventListener('mousemove', handleMouseMove);
+    canvas.addEventListener('mouseleave', handleMouseLeave);
+}
+
+/**
+ * Renders a bar chart for category comparison
+ * @param {HTMLCanvasElement} canvas - The canvas element
+ * @param {Array<{category: string, total: number, percentage: number}>} data - Category breakdown data
+ * @param {Object} options - Chart options
+ */
+export function renderCategoryBarChart(canvas, data, options = {}) {
+    const ctx = prepareCanvas(canvas);
+    if (!ctx) {
+        displayNoDataMessage(canvas, 'Canvas not supported');
+        return;
+    }
+
+    if (!data || data.length === 0) {
+        displayNoDataMessage(canvas, 'No category data available');
+        return;
+    }
+
+    const width = canvas.displayWidth;
+    const height = canvas.displayHeight;
+
+    // Chart margins
+    const margin = { top: 20, right: 20, bottom: 80, left: 70 };
+    const chartWidth = width - margin.left - margin.right;
+    const chartHeight = height - margin.top - margin.bottom;
+
+    // Find max value
+    const maxValue = Math.max(...data.map(d => d.total)) * 1.1;
+
+    // Calculate bar dimensions
+    const barCount = data.length;
+    const barGap = 10;
+    const barWidth = Math.min(50, (chartWidth - (barCount - 1) * barGap) / barCount);
+    const totalBarsWidth = barCount * barWidth + (barCount - 1) * barGap;
+    const startX = margin.left + (chartWidth - totalBarsWidth) / 2;
+
+    // Draw horizontal grid lines
+    ctx.strokeStyle = '#E5E7EB';
+    ctx.lineWidth = 1;
+    const gridLines = 5;
+
+    for (let i = 0; i <= gridLines; i++) {
+        const y = margin.top + (chartHeight / gridLines) * i;
+        ctx.beginPath();
+        ctx.setLineDash([4, 4]);
+        ctx.moveTo(margin.left, y);
+        ctx.lineTo(width - margin.right, y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Y-axis labels
+        const value = maxValue - (maxValue / gridLines) * i;
+        ctx.fillStyle = '#6B7280';
+        ctx.font = '11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`${formatNumber(value)}`, margin.left - 10, y);
+    }
+
+    // Draw bars
+    data.forEach((item, index) => {
+        const x = startX + index * (barWidth + barGap);
+        const barHeight = (item.total / maxValue) * chartHeight;
+        const y = margin.top + chartHeight - barHeight;
+
+        // Draw bar with gradient
+        const gradient = ctx.createLinearGradient(x, y, x, margin.top + chartHeight);
+        const color = CHART_COLORS[index % CHART_COLORS.length];
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(1, adjustColorBrightness(color, -20));
+
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.roundRect(x, y, barWidth, barHeight, [4, 4, 0, 0]);
+        ctx.fill();
+
+        // Draw category label
+        ctx.fillStyle = '#6B7280';
+        ctx.font = '10px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+
+        ctx.save();
+        ctx.translate(x + barWidth / 2, height - margin.bottom + 8);
+        ctx.rotate(-Math.PI / 4);
+        ctx.textAlign = 'right';
+        ctx.fillText(truncateText(ctx, item.category, 70), 0, 0);
+        ctx.restore();
+
+        // Draw value on top of bar
+        if (barHeight > 20) {
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 10px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText(`${item.percentage.toFixed(1)}%`, x + barWidth / 2, y - 4);
+        }
+    });
+}
+
+/**
+ * Adjust color brightness
+ * @param {string} color - Hex color
+ * @param {number} amount - Amount to adjust (-100 to 100)
+ * @returns {string} Adjusted hex color
+ */
+function adjustColorBrightness(color, amount) {
+    const hex = color.replace('#', '');
+    const r = Math.max(0, Math.min(255, parseInt(hex.substr(0, 2), 16) + amount));
+    const g = Math.max(0, Math.min(255, parseInt(hex.substr(2, 2), 16) + amount));
+    const b = Math.max(0, Math.min(255, parseInt(hex.substr(4, 2), 16) + amount));
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}
+
+
+/**
+ * Renders a donut chart for category distribution
+ * @param {HTMLCanvasElement} canvas - The canvas element
+ * @param {Array<{category: string, total: number, percentage: number}>} data - Category breakdown data
+ * @param {Object} options - Chart options
+ * @param {Object} options.highlights - Category highlights (highest, fastestGrowing, mostReduced)
+ */
+export function renderCategoryDonutChart(canvas, data, options = {}) {
+    const ctx = prepareCanvas(canvas);
+    if (!ctx) {
+        displayNoDataMessage(canvas, 'Canvas not supported');
+        return;
+    }
+
+    if (!data || data.length === 0) {
+        displayNoDataMessage(canvas, 'No category data available');
+        return;
+    }
+
+    const width = canvas.displayWidth;
+    const height = canvas.displayHeight;
+
+    // Calculate chart dimensions
+    const legendWidth = Math.min(160, width * 0.4);
+    const chartAreaWidth = width - legendWidth - 20;
+    const centerX = chartAreaWidth / 2;
+    const centerY = height / 2;
+    const outerRadius = Math.min(chartAreaWidth, height) / 2 - 20;
+    const innerRadius = outerRadius * 0.55; // Donut hole
+
+    // Calculate total
+    const total = data.reduce((sum, item) => sum + (item.total || 0), 0);
+
+    if (total === 0) {
+        displayNoDataMessage(canvas, 'No spending data');
+        return;
+    }
+
+    // Get highlight categories
+    const highlights = options.highlights || {};
+    const highlightCategories = new Set();
+    if (highlights.highest) highlightCategories.add(highlights.highest.category);
+    if (highlights.fastestGrowing) highlightCategories.add(highlights.fastestGrowing.category?.category);
+    if (highlights.mostReduced) highlightCategories.add(highlights.mostReduced.category?.category);
+
+    // Draw donut slices
+    let startAngle = -Math.PI / 2;
+
+    data.forEach((item, index) => {
+        const sliceAngle = (item.total / total) * 2 * Math.PI;
+        const color = CHART_COLORS[index % CHART_COLORS.length];
+        const isHighlighted = highlightCategories.has(item.category);
+
+        // Calculate slice position (explode highlighted slices)
+        let sliceCenterX = centerX;
+        let sliceCenterY = centerY;
+        if (isHighlighted) {
+            const midAngle = startAngle + sliceAngle / 2;
+            sliceCenterX += Math.cos(midAngle) * 8;
+            sliceCenterY += Math.sin(midAngle) * 8;
+        }
+
+        // Draw outer arc
+        ctx.beginPath();
+        ctx.arc(sliceCenterX, sliceCenterY, outerRadius, startAngle, startAngle + sliceAngle);
+        ctx.arc(sliceCenterX, sliceCenterY, innerRadius, startAngle + sliceAngle, startAngle, true);
+        ctx.closePath();
+        ctx.fillStyle = color;
+        ctx.fill();
+
+        // Draw slice border
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Draw percentage label if slice is large enough
+        if (item.total / total > 0.08) {
+            const labelAngle = startAngle + sliceAngle / 2;
+            const labelRadius = (outerRadius + innerRadius) / 2;
+            const labelX = sliceCenterX + Math.cos(labelAngle) * labelRadius;
+            const labelY = sliceCenterY + Math.sin(labelAngle) * labelRadius;
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            const percentage = ((item.total / total) * 100).toFixed(1);
+            ctx.fillText(`${percentage}%`, labelX, labelY);
+        }
+
+        startAngle += sliceAngle;
+    });
+
+    // Draw center text
+    ctx.fillStyle = '#111827';
+    ctx.font = 'bold 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Total', centerX, centerY - 10);
+
+    ctx.font = 'bold 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.fillStyle = '#0891b2';
+    ctx.fillText(formatNumber(total), centerX, centerY + 12);
+
+    // Draw legend
+    const legendItems = data.slice(0, 8).map((item, index) => {
+        let label = item.category;
+        if (highlights.highest?.category === item.category) {
+            label += ' ★';
+        }
+        return {
+            label: `${label}: ${formatNumber(item.total)}`,
+            color: CHART_COLORS[index % CHART_COLORS.length]
+        };
+    });
+
+    const legendX = chartAreaWidth + 10;
+    const legendY = 20;
+    drawLegend(ctx, legendItems, legendX, legendY, legendWidth - 10);
+}
+
+/**
+ * Renders category toggle controls
+ * @param {HTMLElement} container - Container element for toggles
+ * @param {Array<{category: string, total: number, isVisible: boolean}>} categories - Category data
+ * @param {Function} onToggle - Callback when a category is toggled
+ */
+export function renderCategoryToggleControls(container, categories, onToggle) {
+    if (!container) return;
+
+    const html = categories.map((cat, index) => {
+        const color = CHART_COLORS[index % CHART_COLORS.length];
+        return `
+            <label class="category-toggle" style="--toggle-color: ${color}">
+                <input type="checkbox" 
+                       value="${cat.category}" 
+                       ${cat.isVisible !== false ? 'checked' : ''}
+                       data-category="${cat.category}">
+                <span class="toggle-color" style="background-color: ${color}"></span>
+                <span class="toggle-label">${cat.category}</span>
+                <span class="toggle-amount">₹${cat.total.toLocaleString('en-IN')}</span>
+            </label>
+        `;
+    }).join('');
+
+    container.innerHTML = html;
+
+    // Add event listeners
+    const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', (e) => {
+            if (onToggle) {
+                onToggle(e.target.dataset.category, e.target.checked);
+            }
+        });
+    });
+}
+
+/**
+ * Update category toggle state
+ * @param {HTMLElement} container - Container element
+ * @param {string} category - Category to update
+ * @param {boolean} isVisible - New visibility state
+ */
+export function updateCategoryToggle(container, category, isVisible) {
+    if (!container) return;
+
+    const checkbox = container.querySelector(`input[data-category="${category}"]`);
+    if (checkbox) {
+        checkbox.checked = isVisible;
+    }
+}

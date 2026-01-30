@@ -1,4 +1,4 @@
-/* ============================================
+﻿/* ============================================
    CSS Variables for Theming (shadcn/ui inspired)
    ============================================ */
 :root {
@@ -372,7 +372,7 @@ img {
 }
 
 .toast-success::before {
-    content: '✓';
+    content: 'âœ“';
     display: flex;
     align-items: center;
     justify-content: center;
@@ -391,7 +391,7 @@ img {
 }
 
 .toast-error::before {
-    content: '✕';
+    content: 'âœ•';
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1711,6 +1711,11 @@ img {
     grid-template-columns: 1fr;
 }
 
+/* Saving Plans card spans full width */
+.saving-plans-card {
+    grid-column: 1 / -1;
+}
+
 .ai-summary p {
     font-size: var(--font-size-base);
     line-height: 1.6;
@@ -1756,39 +1761,63 @@ img {
 
 .saving-plans {
     display: grid;
-    gap: var(--spacing-md);
+    gap: var(--spacing-lg);
     grid-template-columns: 1fr;
 }
 
 .saving-plan {
-    padding: var(--spacing-md);
+    padding: var(--spacing-lg);
     background-color: var(--color-gray-50);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
 }
 
 .saving-plan h4 {
-    margin-bottom: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
     color: var(--color-primary);
-    font-size: var(--font-size-base);
+    font-size: var(--font-size-lg);
     font-weight: var(--font-weight-semibold);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 2px solid var(--color-primary);
 }
 
 .saving-plan p {
-    font-size: var(--font-size-sm);
-    color: var(--color-gray-600);
-    margin-bottom: var(--spacing-xs);
+    font-size: var(--font-size-base);
+    color: var(--color-gray-700);
+    margin-bottom: var(--spacing-sm);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.saving-plan p strong {
+    color: var(--color-foreground);
 }
 
 .saving-plan ul {
-    margin-top: var(--spacing-sm);
-    padding-left: var(--spacing-md);
+    margin-top: var(--spacing-md);
+    padding-left: 0;
+    list-style: none;
 }
 
 .saving-plan li {
     font-size: var(--font-size-sm);
     color: var(--color-gray-700);
-    margin-bottom: var(--spacing-xs);
-    list-style: disc;
+    margin-bottom: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--color-white);
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--color-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.saving-plan li::before {
+    content: '✓';
+    color: var(--color-primary);
+    font-weight: bold;
+    flex-shrink: 0;
 }
 
 /* ============================================
@@ -1920,6 +1949,11 @@ img {
 
     .saving-plans {
         grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-xl);
+    }
+
+    .saving-plan {
+        padding: var(--spacing-xl);
     }
 }
 

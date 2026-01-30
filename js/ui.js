@@ -20,7 +20,7 @@ import { getCurrentMonthTotal, checkOverspending, getMonthlyTotals, getTopCatego
 import { predictNextMonth } from './forecast.js';
 import { getBudgetPlan } from './ai.js';
 import { renderPieChart, renderLineChart, renderForecastChart, setupResponsiveCanvas } from './charts.js';
-import { logout } from './auth.js';
+import { logout, getCurrentUser } from './auth.js';
 import { initImportDialog, openImportDialog, closeImportDialog } from './transactionImport.js';
 
 /**
@@ -606,7 +606,25 @@ async function renderDashboard(data = null) {
 
         const availableBudgetEl = document.getElementById('available-budget');
         if (availableBudgetEl) {
-            availableBudgetEl.textContent = formatCurrency(availableBudget);
+            // Show remaining budget after subtracting current month's spending
+            const remainingBudget = availableBudget - currentMonthTotal;
+            availableBudgetEl.textContent = formatCurrency(remainingBudget);
+
+            // Add visual feedback based on remaining budget
+            if (remainingBudget < 0) {
+                // Over budget - show in red
+                availableBudgetEl.classList.add('overspending');
+                availableBudgetEl.parentElement.classList.add('card-danger');
+            } else if (remainingBudget < availableBudget * 0.2) {
+                // Less than 20% remaining - show warning
+                availableBudgetEl.classList.add('text-warning');
+                availableBudgetEl.classList.remove('overspending');
+                availableBudgetEl.parentElement.classList.remove('card-danger');
+            } else {
+                // Healthy budget
+                availableBudgetEl.classList.remove('overspending', 'text-warning');
+                availableBudgetEl.parentElement.classList.remove('card-danger');
+            }
         }
 
         const momChangeEl = document.getElementById('mom-change');
@@ -793,14 +811,27 @@ function renderAISuggestions(plan) {
     if (savingPlans) {
         savingPlans.innerHTML = '';
 
+        // Helper to format timeframe nicely
+        const formatTimeframe = (months) => {
+            if (months <= 12) {
+                return `${months} month${months > 1 ? 's' : ''}`;
+            }
+            const years = Math.floor(months / 12);
+            const remainingMonths = months % 12;
+            if (remainingMonths === 0) {
+                return `${years} year${years > 1 ? 's' : ''}`;
+            }
+            return `${years} year${years > 1 ? 's' : ''} ${remainingMonths} month${remainingMonths > 1 ? 's' : ''}`;
+        };
+
         if (plan.shortTermPlan) {
             const shortTermDiv = document.createElement('div');
             shortTermDiv.className = 'saving-plan';
             shortTermDiv.innerHTML = `
-                <h4>${escapeHtml(plan.shortTermPlan.name)} (Short-term)</h4>
-                <p>Target: ${formatCurrency(plan.shortTermPlan.targetAmount)}</p>
-                <p>Monthly contribution: ${formatCurrency(plan.shortTermPlan.monthlyContribution)}</p>
-                <p>Timeframe: ${plan.shortTermPlan.timeframeMonths} months</p>
+                <h4>🎯 ${escapeHtml(plan.shortTermPlan.name)}</h4>
+                <p><span>Goal Amount</span> <strong>${formatCurrency(plan.shortTermPlan.targetAmount)}</strong></p>
+                <p><span>Save Monthly</span> <strong>${formatCurrency(plan.shortTermPlan.monthlyContribution)}</strong></p>
+                <p><span>Time Needed</span> <strong>${formatTimeframe(plan.shortTermPlan.timeframeMonths)}</strong></p>
                 <ul>
                     ${plan.shortTermPlan.milestones.map(m => `<li>${escapeHtml(m)}</li>`).join('')}
                 </ul>
@@ -812,10 +843,10 @@ function renderAISuggestions(plan) {
             const longTermDiv = document.createElement('div');
             longTermDiv.className = 'saving-plan';
             longTermDiv.innerHTML = `
-                <h4>${escapeHtml(plan.longTermPlan.name)} (Long-term)</h4>
-                <p>Target: ${formatCurrency(plan.longTermPlan.targetAmount)}</p>
-                <p>Monthly contribution: ${formatCurrency(plan.longTermPlan.monthlyContribution)}</p>
-                <p>Timeframe: ${plan.longTermPlan.timeframeMonths} months</p>
+                <h4>🚀 ${escapeHtml(plan.longTermPlan.name)}</h4>
+                <p><span>Goal Amount</span> <strong>${formatCurrency(plan.longTermPlan.targetAmount)}</strong></p>
+                <p><span>Save Monthly</span> <strong>${formatCurrency(plan.longTermPlan.monthlyContribution)}</strong></p>
+                <p><span>Time Needed</span> <strong>${formatTimeframe(plan.longTermPlan.timeframeMonths)}</strong></p>
                 <ul>
                     ${plan.longTermPlan.milestones.map(m => `<li>${escapeHtml(m)}</li>`).join('')}
                 </ul>
@@ -824,7 +855,7 @@ function renderAISuggestions(plan) {
         }
 
         if (!plan.shortTermPlan && !plan.longTermPlan) {
-            savingPlans.innerHTML = '<p>Set up your budget to receive personalized saving plans.</p>';
+            savingPlans.innerHTML = '<p class="empty-state">Set up your budget to get personalized saving plans!</p>';
         }
     }
 }
